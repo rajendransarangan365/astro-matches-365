@@ -1,7 +1,11 @@
+import React, { useState } from 'react';
+import PersonForm from './components/PersonForm';
+import PoruthamResult from './components/PoruthamResult';
+import { calculatePorutham } from './utils/poruthamLogic';
+import { Heart, Sparkles, LogOut, Save, History, CheckCircle2 } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
-import { LogOut, Save, History, CheckCircle2 } from 'lucide-react';
 
 function App() {
   const { user, token, logout, isAuthenticated, loading } = useAuth();
@@ -30,7 +34,7 @@ function App() {
     if (!result) return;
     setSaveStatus('saving');
     try {
-      const response = await fetch('http://localhost:5000/api/matches', {
+      const response = await fetch('/api/matches', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
