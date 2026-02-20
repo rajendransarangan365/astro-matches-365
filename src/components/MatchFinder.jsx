@@ -2,8 +2,8 @@ import React, { useState, useRef } from 'react';
 import { STARS, RASIS } from '../data/poruthamData';
 import { calculatePorutham } from '../utils/poruthamLogic';
 import { Search, Star, User, Moon, CheckCircle2, XCircle, TrendingUp, Filter, Download } from 'lucide-react';
-import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const MatchFinder = () => {
     const [searchType, setSearchType] = useState('bride'); // 'bride' looking for groom, or 'groom' looking for bride
@@ -15,28 +15,44 @@ const MatchFinder = () => {
     const tableRef = useRef(null);
 
     const handleDownloadPDF = async () => {
-        if (!tableRef.current) return;
         setIsDownloading(true);
         try {
-            const canvas = await html2canvas(tableRef.current, { scale: 2, useCORS: true, backgroundColor: '#1a1a1a' });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            const pdf = new jsPDF('p', 'pt', 'a4');
+            const selectedStar = STARS.find(s => s.id === parseInt(myStar))?.nameEnglish || 'Star';
+            const selectedRasi = RASIS.find(r => r.id === parseInt(myRasi))?.nameEnglish || 'Rasi';
+            const selectedStarTamil = STARS.find(s => s.id === parseInt(myStar))?.nameTamil || '';
+            const selectedRasiTamil = RASIS.find(r => r.id === parseInt(myRasi))?.nameTamil || '';
 
             // Add title
             pdf.setFontSize(16);
-            pdf.text("Match Finder Results", 10, 10);
+            pdf.text(`${searchType === 'bride' ? 'Bride' : 'Groom'} Match Results (${selectedStar} - ${selectedRasi})`, 40, 40);
 
-            // Add image
-            let yPosition = 20;
+            // Prepare table data
+            const tableColumn = ["Rank", "Star & Rasi", "Score %", "Rasi", "Rasi Athip", "Rajju", "Mahendram", "Yoni"];
+            const tableRows = [];
 
-            // If the table is very long, it might overflow a single page. 
-            // We just render whatever fits or let it bleed if it's super long.
-            pdf.addImage(imgData, 'PNG', 0, yPosition, pdfWidth, pdfHeight);
+            results.forEach((res, index) => {
+                const rowData = [
+                    `#${index + 1}`,
+                    `${res.star.nameEnglish} (${res.rasi.nameEnglish})`,
+                    `${res.percentage}%`,
+                    res.details.rasi.status === 'Match' ? 'Match' : 'No Match',
+                    res.details.rasiAthipathi.status === 'Match' ? 'Match' : 'No Match',
+                    res.details.rajju.status === 'Match' ? 'Match' : 'No Match',
+                    res.details.mahendra.status === 'Match' ? 'Match' : 'No Match',
+                    res.details.yoni.status === 'Match' ? 'Match' : 'No Match'
+                ];
+                tableRows.push(rowData);
+            });
 
-            const selectedStar = STARS.find(s => s.id === parseInt(myStar))?.nameEnglish || 'Star';
-            const selectedRasi = RASIS.find(r => r.id === parseInt(myRasi))?.nameEnglish || 'Rasi';
+            autoTable(pdf, {
+                head: [tableColumn],
+                body: tableRows,
+                startY: 50,
+                styles: { fontSize: 9 },
+                headStyles: { fillColor: [139, 92, 246], textColor: [255, 255, 255] },
+                alternateRowStyles: { fillColor: [245, 245, 245] },
+            });
 
             const fileName = searchType === 'bride'
                 ? `Matches_for_Bride_${selectedStar}_${selectedRasi}.pdf`
