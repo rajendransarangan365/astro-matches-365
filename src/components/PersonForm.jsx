@@ -4,6 +4,17 @@ import { User, Star, Moon, BarChart3, ChevronDown, ChevronUp, MapPin, Calendar, 
 import ChartInput from './ChartInput';
 import { calculateAstroDetails } from '../utils/astroUtils';
 
+// Cities available for birth place selection
+const CITIES = [
+    "Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem",
+    "Tirunelveli", "Vellore", "Thoothukudi", "Thanjavur", "Nagercoil",
+    "Karaikudi", "Arimalam", "Sivaganga", "Kanyakumari", "Rameswaram",
+    "Pondicherry", "Erode", "Kumbakonam", "Dindigul", "Virudhunagar",
+    "Ramanathapuram", "Pudukkottai", "Nagapattinam", "Tiruvallur",
+    "Villupuram", "Cuddalore", "Tiruvannamalai", "Krishnagiri",
+    "Dharmapuri", "Kanchipuram", "Tiruppur"
+];
+
 const PersonForm = ({ title, data, onChange, type }) => {
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [calculating, setCalculating] = useState(false);
@@ -25,9 +36,12 @@ const PersonForm = ({ title, data, onChange, type }) => {
                     navamsamChart: results.navamsamChart,
                     lagnam: results.lagnam
                 });
+            } else {
+                alert("கணக்கீட்டில் பிழை! தயவுசெய்து மீண்டும் முயற்சிக்கவும்.");
             }
         } catch (err) {
             console.error(err);
+            alert("கணக்கீட்டில் பிழை: " + err.message);
         } finally {
             setCalculating(false);
         }
@@ -41,7 +55,7 @@ const PersonForm = ({ title, data, onChange, type }) => {
 
             <div className="form-grid" style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
                 {/* 1. Name */}
-                <div className="input-group" style={{ gridColumn: '1 / span 2' }}>
+                <div className="input-group" style={{ gridColumn: '1 / -1' }}>
                     <label><User size={16} /> பெயர் (Name)</label>
                     <input
                         type="text"
@@ -51,15 +65,34 @@ const PersonForm = ({ title, data, onChange, type }) => {
                     />
                 </div>
 
-                {/* 2. Birth Place */}
-                <div className="input-group" style={{ gridColumn: '1 / span 2' }}>
+                {/* 2. Birth Place - Dropdown + Manual Input */}
+                <div className="input-group" style={{ gridColumn: '1 / -1' }}>
                     <label><MapPin size={16} /> பிறந்த இடம் (Birth Place)</label>
-                    <input
-                        type="text"
-                        placeholder="ஊர் (e.g. Chennai, Madurai...)"
-                        value={data.birthPlace || ''}
-                        onChange={(e) => onChange({ ...data, birthPlace: e.target.value })}
-                    />
+                    <select
+                        value={CITIES.includes(data.birthPlace) ? data.birthPlace : '__other__'}
+                        onChange={(e) => {
+                            if (e.target.value === '__other__') {
+                                onChange({ ...data, birthPlace: '' });
+                            } else {
+                                onChange({ ...data, birthPlace: e.target.value });
+                            }
+                        }}
+                    >
+                        <option value="">-- தேர்ந்தெடுக்கவும் --</option>
+                        {CITIES.map(city => (
+                            <option key={city} value={city}>{city}</option>
+                        ))}
+                        <option value="__other__">மற்றவை (Other)...</option>
+                    </select>
+                    {(!CITIES.includes(data.birthPlace) && data.birthPlace !== '' || data.birthPlace === '') && !CITIES.includes(data.birthPlace) && (
+                        <input
+                            type="text"
+                            placeholder="ஊர் பெயர் (Type city name)"
+                            value={data.birthPlace || ''}
+                            onChange={(e) => onChange({ ...data, birthPlace: e.target.value })}
+                            style={{ marginTop: '0.5rem' }}
+                        />
+                    )}
                 </div>
 
                 {/* 3. DOB */}
@@ -94,7 +127,7 @@ const PersonForm = ({ title, data, onChange, type }) => {
                 </div>
 
                 {/* Calculate Button */}
-                <div style={{ gridColumn: '1 / span 2', marginTop: '0.5rem' }}>
+                <div style={{ gridColumn: '1 / -1', marginTop: '0.5rem' }}>
                     <button
                         onClick={handleCalculate}
                         disabled={calculating}
@@ -111,7 +144,7 @@ const PersonForm = ({ title, data, onChange, type }) => {
                         <label><Moon size={16} /> இராசி (Rasi)</label>
                         <select
                             value={data.rasiId}
-                            onChange={(e) => onChange({ ...data, rasiId: e.target.value })}
+                            onChange={(e) => onChange({ ...data, rasiId: parseInt(e.target.value) || '' })}
                         >
                             <option value="">தேர்ந்தெடுக்கவும்</option>
                             {RASIS.map(r => (
@@ -124,7 +157,7 @@ const PersonForm = ({ title, data, onChange, type }) => {
                         <label><Star size={16} /> நட்சத்திரம் (Star)</label>
                         <select
                             value={data.starId}
-                            onChange={(e) => onChange({ ...data, starId: e.target.value })}
+                            onChange={(e) => onChange({ ...data, starId: parseInt(e.target.value) || '' })}
                         >
                             <option value="">தேர்ந்தெடுக்கவும்</option>
                             {STARS.map(s => (
