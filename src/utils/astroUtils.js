@@ -116,8 +116,34 @@ export const calculateAstroDetails = async (dob, time, place, meridian = 'AM') =
 
         // 3. Get Positions from vedic-astro
         const eph = await getPlanetaryPositions({ iso }, location);
-        console.log("Ephemeris datetime:", eph.datetime);
-        console.log("Planet positions:", eph.positions.map(p => `${p.name}: ${p.longitude.toFixed(2)}°`));
+
+        // ──────────────────────────────────────────────────────────────
+        // BUG FIX: vedic-astro library has a critical bug in ephemeris.js
+        // astronomia's moonposition.position(jd).lon returns RADIANS
+        // but the library treats it as DEGREES, applying ayanamsha (24°)
+        // to a value of ~0–6.28. This always gives ~336-342° sidereal 
+        // longitude → always Meena (Pisces) / Uttara Bhadrapada.
+        // 
+        // Fix: reverse the incorrect operation, convert radians→degrees,
+        // then reapply ayanamsha correctly.
+        // ──────────────────────────────────────────────────────────────
+        const AYANAMSHA = 24; // Same value used by the library
+        const moonEntry = eph.positions.find(p => p.name === 'Moon');
+        if (moonEntry) {
+            const storedLon = moonEntry.longitude;
+            // Reverse: storedLon = (radians - AYANAMSHA + 360) % 360
+            // So: radians = (storedLon + AYANAMSHA) % 360
+            const originalRadians = ((storedLon + AYANAMSHA) % 360 + 360) % 360;
+            // Convert radians to degrees
+            const moonLonTropical = originalRadians * (180 / Math.PI);
+            // Apply ayanamsha correctly (in degrees)
+            const moonLonSidereal = ((moonLonTropical - AYANAMSHA) % 360 + 360) % 360;
+
+            console.log(`Moon Fix: stored=${storedLon.toFixed(2)}° → radians=${originalRadians.toFixed(4)} → tropical=${moonLonTropical.toFixed(2)}° → sidereal=${moonLonSidereal.toFixed(2)}°`);
+            moonEntry.longitude = moonLonSidereal;
+        }
+
+        console.log("Corrected positions:", eph.positions.map(p => `${p.name}: ${p.longitude.toFixed(2)}°`));
 
         const panchang = getPanchang(eph, location);
         const moonSign = getMoonSign(eph);
