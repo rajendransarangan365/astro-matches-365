@@ -44,16 +44,26 @@ const CITY_COORDINATES = {
     "Pondicherry": { lat: 11.9416, lng: 79.8083 }
 };
 
-export const calculateAstroDetails = async (dob, time, place) => {
+export const calculateAstroDetails = async (dob, time, place, meridian = 'AM') => {
     try {
-        // 1. Get Coordinates
-        const coords = CITY_COORDINATES[place] || CITY_COORDINATES["Chennai"]; // Default to Chennai if not found
+        console.log("Starting calculation for:", { dob, time, place, meridian });
 
-        // 2. Prepare ISO string
+        // 1. Get Coordinates
+        const coords = CITY_COORDINATES[place] || CITY_COORDINATES["Chennai"];
+
+        // 2. Prepare Date with Meridian correction
         const [year, month, day] = dob.split('-').map(Number);
         let [hours, minutes] = time.split(':').map(Number);
+
+        if (meridian === 'PM' && hours < 12) hours += 12;
+        if (meridian === 'AM' && hours === 12) hours = 0;
+
+        // Use UTC offset for India (+5:30) if possible, or just local date
+        // Note: vedic-astro expects { iso } which usually implies UTC or ISO with offset
         const date = new Date(year, month - 1, day, hours, minutes);
         const iso = date.toISOString();
+
+        console.log("Calculated ISO:", iso, "using coordinates:", coords);
 
         const location = { latitude: coords.lat, longitude: coords.lng };
 
@@ -63,44 +73,51 @@ export const calculateAstroDetails = async (dob, time, place) => {
         const moonSign = getMoonSign(eph);
         const kundali = getKundali(eph);
 
-        // 4. Map Rasi and Star
-        // Star index in STARS array (1-27)
-        // Rasi index in RASIS array (1-12)
-        // Note: Library might return names, we need to find our IDs
-
-        const rasiId = RASI_TAMIL_NAMES.indexOf(moonSign.rashi) + 1 || 1;
-        const starId = STAR_TAMIL_NAMES.indexOf(panchang.nakshatra) + 1 || 1;
-
-        // 5. Generate Charts
-        // South Indian Style: Houses 1 to 12
-        const rasiChart = {};
-        const navamsamChart = {};
-
-        // D1 (Rasi) positions
-        kundali.houses.forEach((house, index) => {
-            const houseNum = index + 1;
-            const planetsInHouse = house.planets || [];
-            rasiChart[houseNum] = planetsInHouse.map(p => translatePlanet(p));
+        console.log("Library Output Sample:", {
+            rashi: moonSign.rashi,
+            star: panchang.nakshatra,
+            houses: kundali?.houses?.length
         });
 
-        // Lagnam (Ascendant)
-        if (kundali.ascendant) {
-            const lagnaHouse = kundali.ascendant.house;
-            if (!rasiChart[lagnaHouse]) rasiChart[lagnaHouse] = [];
-            rasiChart[lagnaHouse].push("லக்");
+        // 4. Map Rasi and Star (Library returns English names like 'Aries', 'Ashwini')
+        // We use a helper to find the index
+        const RASI_ENG = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+        const STAR_ENG = ["Ashwini", "Bharani", "Krittika", "Rohini", "Mrigasira", "Ardra", "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Moola", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"];
+
+        const rasiId = RASI_ENG.indexOf(moonSign.rashi) + 1 || 1;
+        const starId = STAR_ENG.indexOf(panchang.nakshatra) + 1 || 1;
+
+        // 5. Generate Charts
+        const rasiChart = {};
+
+        if (kundali && kundali.houses) {
+            kundali.houses.forEach((house, index) => {
+                const houseNum = index + 1;
+                // Planets might be in house.planets (array of codes)
+                const planetsInHouse = house.planets || [];
+                if (planetsInHouse.length > 0) {
+                    rasiChart[houseNum] = planetsInHouse.map(p => translatePlanet(p));
+                }
+            });
+
+            // Lagnam (Ascendant)
+            if (kundali.ascendant) {
+                const lagnaHouse = kundali.ascendant.house;
+                if (!rasiChart[lagnaHouse]) rasiChart[lagnaHouse] = [];
+                if (!rasiChart[lagnaHouse].includes("லக்")) {
+                    rasiChart[lagnaHouse].push("லக்");
+                }
+            }
         }
 
-        // Navamsam (D9) - Mock calculation for now if lib doesn't provide
-        // Simple mock logic: just shift slightly for demo, or calculate if we have longitudes
-        // D9 is more complex, usually lib provides it.
-        // If vedic-astro doesn't have D9 in getKundali, we'll use a placeholder or calc.
+        console.log("Generated Rasi Chart:", rasiChart);
 
         return {
             rasiId,
             starId,
             rasiChart,
-            navamsamChart: rasiChart, // Defaulting to Rasi for now, update if D9 found
-            lagnam: kundali.ascendant ? rasiIdToHouse(kundali.ascendant.sign) : 1
+            navamsamChart: JSON.parse(JSON.stringify(rasiChart)), // Deep copy
+            lagnam: rasiId // Default to rasi for now
         };
 
     } catch (err) {
