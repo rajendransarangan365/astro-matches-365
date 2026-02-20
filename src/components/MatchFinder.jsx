@@ -143,8 +143,8 @@ const MatchFinder = () => {
                 return b.percentage - a.percentage;
             });
 
-            // Keep only top matches that have at least a passable score (e.g., >= 6/12)
-            const goodMatches = matches.filter(m => m.totalScore >= 6).slice(0, 100);
+            // Keep only top 10 matches that have at least a passable score (e.g., >= 6/12)
+            const goodMatches = matches.filter(m => m.totalScore >= 6).slice(0, 10);
 
             setResults(goodMatches);
             setIsSearching(false);
@@ -159,7 +159,7 @@ const MatchFinder = () => {
             </h2>
 
             <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '0.9rem' }}>
-                உங்கள் இராசி மற்றும் நட்சத்திரத்தை உள்ளிட்டு, உங்களுக்குப் பொருத்தமான 100 சிறந்த நட்சத்திரங்கள் மற்றும் இராசிகளை வரிசைக்கிரமமாக (Ranked) கண்டறியவும்.
+                உங்கள் இராசி மற்றும் நட்சத்திரத்தை உள்ளிட்டு, உங்களுக்குப் பொருத்தமான 10 சிறந்த நட்சத்திரங்கள் மற்றும் இராசிகளை வரிசைக்கிரமமாக (Ranked) கண்டறியவும்.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem', background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid var(--glass-border)' }}>
