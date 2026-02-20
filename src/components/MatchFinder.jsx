@@ -12,6 +12,7 @@ const MatchFinder = () => {
     const [results, setResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [expandedRow, setExpandedRow] = useState(null); // Tracks which result card is opened
     const tableRef = useRef(null);
 
     const handleDownloadPDF = async () => {
@@ -28,19 +29,30 @@ const MatchFinder = () => {
             pdf.text(`${searchType === 'bride' ? 'Bride' : 'Groom'} Match Results (${selectedStar} - ${selectedRasi})`, 40, 40);
 
             // Prepare table data
-            const tableColumn = ["Rank", "Star & Rasi", "Score %", "Rasi", "Rasi Athip", "Rajju", "Mahendram", "Yoni"];
+            const tableColumn = ["Rank", "Star & Rasi", "Score", "Match Quality", "Critical Notes"];
             const tableRows = [];
 
             results.forEach((res, index) => {
+                const isExcellent = res.totalScore >= 9;
+                const isGood = res.totalScore >= 7;
+                const qualityStr = isExcellent ? "Excellent" : isGood ? "Good" : "Average";
+
+                // Look for missing critical poruthams to highlight in notes
+                const missingCriticals = [];
+                if (res.details.rasi.status !== 'Match') missingCriticals.push('Rasi');
+                if (res.details.rasiAthipathi.status !== 'Match') missingCriticals.push('Athi');
+                if (res.details.rajju.status !== 'Match') missingCriticals.push('Rajju');
+                if (res.details.mahendra.status !== 'Match') missingCriticals.push('Mahen');
+                if (res.details.yoni.status !== 'Match') missingCriticals.push('Yoni');
+
+                const notes = missingCriticals.length > 0 ? `Missing: ${missingCriticals.join(', ')}` : 'All Core Matches Present!';
+
                 const rowData = [
                     `#${index + 1}`,
                     `${res.star.nameEnglish} (${res.rasi.nameEnglish})`,
-                    `${res.percentage}%`,
-                    res.details.rasi.status === 'Match' ? 'Match' : 'No Match',
-                    res.details.rasiAthipathi.status === 'Match' ? 'Match' : 'No Match',
-                    res.details.rajju.status === 'Match' ? 'Match' : 'No Match',
-                    res.details.mahendra.status === 'Match' ? 'Match' : 'No Match',
-                    res.details.yoni.status === 'Match' ? 'Match' : 'No Match'
+                    `${res.totalScore} / 12`,
+                    qualityStr,
+                    notes
                 ];
                 tableRows.push(rowData);
             });
@@ -107,6 +119,7 @@ const MatchFinder = () => {
                             star: targetStar,
                             rasi: targetRasi,
                             percentage: matchResult.summaryReport?.percentage || 0,
+                            totalScore: matchResult.summaryReport?.totalScore || 0, // Out of 12
                             importantScore: matchResult.score, // 0-5
                             details: matchResult.results
                         });
@@ -114,17 +127,19 @@ const MatchFinder = () => {
                 });
             });
 
-            // Sort by percentage (highest first), then by important score
+            // Sort by totalScore out of 12 (highest first), then by important score
             matches.sort((a, b) => {
-                if (b.percentage !== a.percentage) return b.percentage - a.percentage;
-                return b.importantScore - a.importantScore;
+                if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+                if (b.importantScore !== a.importantScore) return b.importantScore - a.importantScore;
+                return b.percentage - a.percentage;
             });
 
-            // Keep only top 50 matches to prevent UI lag, or filter out terrible ones
-            const goodMatches = matches.filter(m => m.percentage >= 50).slice(0, 100);
+            // Keep only top 100 matches that have at least a passable score (e.g., >= 6/12)
+            const goodMatches = matches.filter(m => m.totalScore >= 6).slice(0, 100);
 
             setResults(goodMatches);
             setIsSearching(false);
+            setExpandedRow(null); // Reset expansions on new search
         }, 100); // Small timeout to allow UI to show "Searching..." state
     };
 
@@ -225,60 +240,130 @@ const MatchFinder = () => {
                         </div>
                     </div>
 
-                    <div ref={tableRef} style={{ overflowX: 'auto', borderRadius: '0.5rem', border: '1px solid var(--glass-border)', padding: '1rem', background: '#111827' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
-                            <thead>
-                                <tr style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--glass-border)' }}>
-                                    <th style={{ padding: '1rem', color: '#94a3b8' }}>தரவரிசை (Rank)</th>
-                                    <th style={{ padding: '1rem', color: '#f8fafc' }}>பொருத்தமான நட்சத்திரம் & இராசி</th>
-                                    <th style={{ padding: '1rem', color: '#4ade80' }}>மொத்த பொருத்தம் (%)</th>
-                                    <th style={{ padding: '1rem', fontSize: '0.85rem', color: '#cbd5e1' }}>ராசி<br />(வம்சம்)</th>
-                                    <th style={{ padding: '1rem', fontSize: '0.85rem', color: '#cbd5e1' }}>ராசியதிபதி<br />(ஒற்றுமை)</th>
-                                    <th style={{ padding: '1rem', fontSize: '0.85rem', color: '#fca5a5' }}>ரஜ்ஜு<br />(ஆயுள்!)</th>
-                                    <th style={{ padding: '1rem', fontSize: '0.85rem', color: '#cbd5e1' }}>மகேந்திரம்<br />(குழந்தை)</th>
-                                    <th style={{ padding: '1rem', fontSize: '0.85rem', color: '#cbd5e1' }}>யோனி<br />(தாம்பத்தியம்)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {results.map((res, index) => (
-                                    <tr key={`${res.star.id}-${res.rasi.id}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: index % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.1)' }}>
-                                        <td style={{ padding: '1rem', fontWeight: 'bold', color: index < 3 ? '#fbbf24' : 'var(--text-secondary)' }}>
-                                            #{index + 1}
-                                        </td>
-                                        <td style={{ padding: '1rem' }}>
-                                            <div style={{ fontWeight: 'bold' }}>{res.star.nameTamil} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>({res.star.nameEnglish})</span></div>
-                                            <div style={{ fontSize: '0.85rem', color: searchType === 'bride' ? '#60a5fa' : '#f472b6' }}>{res.rasi.nameTamil}</div>
-                                        </td>
-                                        <td style={{ padding: '1rem' }}>
-                                            <span style={{
-                                                background: res.percentage >= 70 ? 'rgba(74, 222, 128, 0.15)' : 'rgba(250, 204, 21, 0.15)',
-                                                color: res.percentage >= 70 ? '#4ade80' : '#facc15',
-                                                padding: '0.25rem 0.5rem',
-                                                borderRadius: '0.25rem',
-                                                fontWeight: 'bold'
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {results.map((res, index) => {
+                            const isExpanded = expandedRow === `${res.star.id}-${res.rasi.id}`;
+                            const isExcellent = res.totalScore >= 9;
+                            const isGood = res.totalScore >= 7;
+
+                            return (
+                                <div key={`${res.star.id}-${res.rasi.id}`} style={{
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid var(--glass-border)',
+                                    borderRadius: '0.5rem',
+                                    overflow: 'hidden',
+                                    transition: 'all 0.2s ease-in-out',
+                                }}>
+                                    {/* Unexpanded Summary Header */}
+                                    <div
+                                        onClick={() => setExpandedRow(isExpanded ? null : `${res.star.id}-${res.rasi.id}`)}
+                                        style={{
+                                            padding: '1rem',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            cursor: 'pointer',
+                                            background: isExpanded ? 'rgba(0,0,0,0.2)' : 'transparent',
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                            <div style={{
+                                                width: '32px',
+                                                height: '32px',
+                                                borderRadius: '50%',
+                                                background: searchType === 'bride' ? 'rgba(96, 165, 250, 0.1)' : 'rgba(244, 114, 182, 0.1)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: searchType === 'bride' ? '#60a5fa' : '#f472b6',
+                                                fontWeight: 'bold',
+                                                fontSize: '0.85rem'
                                             }}>
-                                                {res.percentage}%
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                            {res.details.rasi.status === 'Match' ? <CheckCircle2 size={18} color="#4ade80" /> : <XCircle size={18} color="#f87171" opacity={0.5} />}
-                                        </td>
-                                        <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                            {res.details.rasiAthipathi.status === 'Match' ? <CheckCircle2 size={18} color="#4ade80" /> : <XCircle size={18} color="#f87171" opacity={0.5} />}
-                                        </td>
-                                        <td style={{ padding: '1rem', textAlign: 'center', background: 'rgba(248, 113, 113, 0.05)' }}>
-                                            {res.details.rajju.status === 'Match' ? <CheckCircle2 size={20} color="#4ade80" /> : <XCircle size={20} color="#ef4444" />}
-                                        </td>
-                                        <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                            {res.details.mahendra.status === 'Match' ? <CheckCircle2 size={18} color="#4ade80" /> : <XCircle size={18} color="#f87171" opacity={0.5} />}
-                                        </td>
-                                        <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                            {res.details.yoni.status === 'Match' ? <CheckCircle2 size={18} color="#4ade80" /> : <XCircle size={18} color="#f87171" opacity={0.5} />}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                                #{index + 1}
+                                            </div>
+                                            <div>
+                                                <div style={{ fontWeight: 'bold', fontSize: '1.05rem', color: searchType === 'bride' ? '#60a5fa' : '#f472b6' }}>
+                                                    {res.rasi.nameTamil} <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 'normal' }}>- {res.star.nameTamil}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                            <div style={{
+                                                fontWeight: 'bold',
+                                                fontSize: '1.2rem',
+                                                color: isExcellent ? '#4ade80' : isGood ? '#fbbf24' : '#f87171'
+                                            }}>
+                                                {res.totalScore} / 12
+                                            </div>
+                                            <div style={{ color: 'var(--text-secondary)', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                                                ▼
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Expanded 12 Porutham View */}
+                                    {isExpanded && (
+                                        <div style={{ padding: '0', borderTop: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.3)' }}>
+
+                                            {/* Header Row */}
+                                            <div style={{ display: 'flex', background: '#eab308', color: '#000', padding: '0.5rem 1rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                                                <div style={{ width: '40px' }}>வ எண்</div>
+                                                <div style={{ flex: 1 }}>பொருத்தம்</div>
+                                                <div style={{ width: '60px', textAlign: 'center' }}>நிலை</div>
+                                            </div>
+
+                                            {/* Data Rows */}
+                                            {[
+                                                { id: "dina", label: "தினப் பொருத்தம்", isImportant: false },
+                                                { id: "gana", label: "கணப் பொருத்தம்", isImportant: false },
+                                                { id: "mahendra", label: "மகேந்திரப் பொருத்தம்", isImportant: true }, // IMPORTANT
+                                                { id: "sthree", label: "ஸ்திரீ தீர்க்கம்", isImportant: false },
+                                                { id: "yoni", label: "யோனிப் பொருத்தம்", isImportant: true }, // IMPORTANT
+                                                { id: "rasi", label: "இராசிப் பொருத்தம்", isImportant: true }, // IMPORTANT
+                                                { id: "rasiAthipathi", label: "ராசி அதிபதி பொருத்தம்", isImportant: true }, // IMPORTANT
+                                                { id: "vasya", label: "வசியப் பொருத்தம்", isImportant: false },
+                                                { id: "rajju", label: "ரஜ்ஜிப் பொருத்தம்", isImportant: true }, // IMPORTANT
+                                                { id: "vedhai", label: "வேதைப் பொருத்தம்", isImportant: false },
+                                                { id: "nadi", label: "நாடிப் பொருத்தம்", isImportant: false },
+                                                { id: "vruksha", label: "விருட்சப் பொருத்தம்", isImportant: false }
+                                            ].map((porutham, idx) => {
+                                                const matchStatus = res.details[porutham.id]?.status === 'Match';
+
+                                                return (
+                                                    <div key={porutham.id} style={{
+                                                        display: 'flex',
+                                                        padding: '0.75rem 1rem',
+                                                        borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                                        alignItems: 'center',
+                                                        background: porutham.isImportant ? 'rgba(234, 179, 8, 0.05)' : 'transparent' // Highlight important ones slightly
+                                                    }}>
+                                                        <div style={{ width: '40px', color: 'var(--text-secondary)' }}>{idx + 1}</div>
+                                                        <div style={{ flex: 1, fontWeight: porutham.isImportant ? 'bold' : 'normal', color: porutham.isImportant ? '#fbbf24' : 'var(--text-primary)' }}>
+                                                            {porutham.label} {porutham.isImportant && <Star size={12} style={{ display: 'inline', marginLeft: '4px' }} />}
+                                                        </div>
+                                                        <div style={{ width: '60px', textAlign: 'center' }}>
+                                                            {matchStatus ?
+                                                                <div style={{ background: '#4ade80', color: '#000', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>✓</div>
+                                                                :
+                                                                <div style={{ background: '#f87171', color: '#fff', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>✕</div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {/* Summary Footer Row */}
+                                            <div style={{ display: 'flex', padding: '1rem', background: 'rgba(255,255,255,0.02)', alignItems: 'center', justifyContent: 'center', gap: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                                                <div style={{ fontWeight: 'bold' }}>பொருத்தம் - <span style={{ color: isExcellent ? '#4ade80' : isGood ? '#fbbf24' : '#f87171' }}>{isExcellent ? 'உன்னதம்' : isGood ? 'மத்திமம்' : 'சுமார்'}</span></div>
+                                                <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{res.totalScore}</div>
+                                            </div>
+
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}
