@@ -207,16 +207,16 @@ export const calculatePorutham = (bride, groom) => {
     let canMarry = false;
 
     if (results.rajju.status === "No Match") {
-        recommendation = "ரஜ்ஜிப் பொருத்தம் சரியாக இல்லை. இது திருமணத்திற்கு உகந்ததல்ல.";
+        recommendation = "ரஜ்ஜிப் பொருத்தம் சரியாக இல்லை (ஆயுள் பலம் இல்லை). இது திருமணத்திற்கு உகந்ததல்ல.";
         canMarry = false;
-    } else if (doshamResult.match === "No Match") {
+    } else if (hasCharts && doshamResult.match === "No Match") {
         recommendation = "பெண்ணின் ஜாதகத்தில் பாப கிரகப் பலன் அதிகமாக உள்ளது, எனவே பாபசாம்யம் இல்லை.";
         canMarry = false;
     } else if (importantMatches >= 3) {
-        recommendation = "நல்ல பொருத்தம் உண்டு. தாராளமாகத் திருமணம் செய்யலாம்.";
+        recommendation = `முக்கியமான 5 பொருத்தங்களில் ${importantMatches} பொருத்தங்கள் உள்ளன. நல்ல பொருத்தம் உண்டு.`;
         canMarry = true;
     } else {
-        recommendation = "பொருத்தம் குறைவாக உள்ளது. அதிக ஜாதக ஆலோசனை தேவை.";
+        recommendation = `முக்கியமான 5 பொருத்தங்களில் ${importantMatches} மட்டுமே உள்ளன. பொருத்தம் குறைவாக உள்ளது.`;
         canMarry = false;
     }
 
@@ -224,15 +224,21 @@ export const calculatePorutham = (bride, groom) => {
     const pros = [];
     const cons = [];
 
-    // Check Big 5
-    if (results.rajju.status === "Match") pros.push("ரஜ்ஜிப் பொருத்தம் மிகச் சிறப்பாக உள்ளது (ஆயுள் பலம்).");
-    else cons.push("ரஜ்ஜிப் பொருத்தம் இல்லை - இது குழந்தைப் பேறு மற்றும் ஆயுளைப் பாதிக்கும்.");
+    // Check Big 5 (The most important Poruthams)
+    if (results.rajju.status === "Match") pros.push("ரஜ்ஜிப் பொருத்தம் மிகச் சிறப்பாக உள்ளது (ஆயுள் மற்றும் மாங்கல்ய பலம்).");
+    else cons.push("முக்கியமான ரஜ்ஜிப் பொருத்தம் இல்லை - இது மாங்கல்ய பலம் மற்றும் ஆயுளைப் பாதிக்கும்.");
 
     if (results.rasi.status === "Match") pros.push("இராசிப் பொருத்தம் நன்று (வம்ச விருத்தி).");
-    else cons.push("இராசிப் பொருத்தம் இல்லை - மன ஒற்றுமை மற்றும் வம்ச விருத்தியில் தாமதம் ஏற்படலாம்.");
+    else cons.push("முக்கியமான இராசிப் பொருத்தம் இல்லை - வம்ச விருத்தியில் தாமதம் ஏற்படலாம்.");
+
+    if (results.rasiAthipathi.status === "Match") pros.push("இராசி அதிபதிப் பொருத்தம் உள்ளது (குடும்ப ஒற்றுமை).");
+    else cons.push("முக்கியமான இராசி அதிபதிப் பொருத்தம் இல்லை - குடும்பத்தில் கருத்து வேறுபாடுகள் வரலாம்.");
 
     if (results.yoni.status === "Match") pros.push("யோனிப் பொருத்தம் சிறப்பு (தாம்பத்திய சுகம்).");
-    else cons.push("யோனிப் பொருத்தம் இல்லை - கருத்து வேறுபாடுகள் ஏற்படலாம்.");
+    else cons.push("முக்கியமான யோனிப் பொருத்தம் இல்லை - தாம்பத்திய வாழ்வில் திருப்தியின்மை ஏற்படலாம்.");
+
+    if (results.mahendra.status === "Match") pros.push("மகேந்திரப் பொருத்தம் உள்ளது (புத்திர பாக்கியம் மற்றும் செல்வம்).");
+    else cons.push("முக்கியமான மகேந்திரப் பொருத்தம் இல்லை - புத்திர பாக்கியம் தாமதமாகலாம்.");
 
     if (hasCharts) {
         if (doshamResult.match === "Match") {
