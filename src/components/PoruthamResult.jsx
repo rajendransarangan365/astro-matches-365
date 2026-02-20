@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, XCircle, AlertCircle, Heart, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Heart, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import RasiKattam from './RasiKattam';
@@ -92,16 +92,18 @@ const PoruthamResult = ({ data }) => {
                                         </ul>
                                     </div>
 
-                                    {summaryReport.cons.length > 0 && (
-                                        <div>
-                                            <h5 style={{ color: '#f87171', fontSize: '0.85rem', marginBottom: '0.5rem' }}>குறைகள் (Cons):</h5>
+                                    <div>
+                                        <h5 style={{ color: '#f87171', fontSize: '0.85rem', marginBottom: '0.5rem' }}>குறைகள் (Cons):</h5>
+                                        {summaryReport.cons.length > 0 ? (
                                             <ul style={{ paddingLeft: '1.2rem', margin: 0 }}>
                                                 {summaryReport.cons.map((c, i) => (
                                                     <li key={i} style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.25rem' }}>{c}</li>
                                                 ))}
                                             </ul>
-                                        </div>
-                                    )}
+                                        ) : (
+                                            <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0 }}>குறிப்பிடத்தக்க குறைகள் ஏதுமில்லை (None).</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}

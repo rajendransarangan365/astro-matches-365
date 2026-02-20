@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { PLANETS } from '../data/poruthamData';
 
 const RASI_ORDER = [12, 1, 2, 3, 11, null, null, 4, 10, null, null, 5, 9, 8, 7, 6];
 
@@ -47,17 +48,22 @@ const RasiKattam = ({ title, chartData, color, highlightRasiId }) => {
                             <>
                                 <span style={{ opacity: 0.3, position: 'absolute', top: 2, right: 2, fontSize: '0.5rem' }}>{RASI_NAMES[id]}</span>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1px', justifyContent: 'center' }}>
-                                    {chartData[id]?.map(pId => (
-                                        <span key={pId} style={{
-                                            fontSize: '0.55rem',
-                                            background: pId === 'La' ? color : 'rgba(255,255,255,0.1)',
-                                            color: pId === 'La' ? 'black' : 'white',
-                                            padding: '0 1px',
-                                            borderRadius: '1px'
-                                        }}>
-                                            {pId}
-                                        </span>
-                                    ))}
+                                    {chartData[id]?.map(pId => {
+                                        const planet = PLANETS.find(p => p.id === pId);
+                                        const displayName = planet ? planet.nameTamilShort : pId;
+                                        return (
+                                            <span key={pId} style={{
+                                                fontSize: '0.65rem',
+                                                background: pId === 'La' || pId === 'லக்' ? color : 'rgba(255,255,255,0.1)',
+                                                color: pId === 'La' || pId === 'லக்' ? 'black' : 'white',
+                                                padding: '0 2px',
+                                                borderRadius: '2px',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                {displayName}
+                                            </span>
+                                        );
+                                    })}
                                     {id === parseInt(highlightRasiId) && !chartData[id]?.includes('Mo') && (
                                         <span style={{ fontSize: '0.55rem', opacity: 0.5 }}>🌑</span>
                                     )}
