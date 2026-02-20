@@ -25,36 +25,17 @@ const MatchFinder = () => {
         setIsDownloading(true);
 
         try {
-            const pdf = new jsPDF('p', 'pt', 'a4');
+            const canvas = await html2canvas(printRef.current, { scale: 2, backgroundColor: '#ffffff' });
+            const imgData = canvas.toDataURL('image/png');
+
+            // Adjust to fit A4 width, Landscape orientation is better for wide tables
+            const pdf = new jsPDF('l', 'pt', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
+            const imgRatio = canvas.height / canvas.width;
+            const printWidth = pdfWidth - 40;
+            const printHeight = printWidth * imgRatio;
 
-            // 1. Capture Title
-            const titleNode = printRef.current.querySelector('.print-title');
-            const titleCanvas = await html2canvas(titleNode, { scale: 2, backgroundColor: '#ffffff' });
-            const titleImg = titleCanvas.toDataURL('image/png');
-            const titleHeight = ((pdfWidth - 40) * titleCanvas.height) / titleCanvas.width;
-
-            pdf.addImage(titleImg, 'PNG', 20, 20, pdfWidth - 40, titleHeight);
-            let currentY = 20 + titleHeight + 20;
-
-            // 2. Capture Each Match Card
-            const cards = printRef.current.querySelectorAll('.print-match-card');
-            for (let i = 0; i < cards.length; i++) {
-                const canvas = await html2canvas(cards[i], { scale: 2, backgroundColor: '#ffffff' });
-                const imgData = canvas.toDataURL('image/png');
-                const imgRatio = canvas.height / canvas.width;
-                const printWidth = pdfWidth - 40;
-                const printHeight = printWidth * imgRatio;
-
-                // Check if card fits on remaining page height. If not, add new page.
-                if (currentY + printHeight > pdf.internal.pageSize.getHeight() - 20) {
-                    pdf.addPage();
-                    currentY = 20; // reset to top
-                }
-
-                pdf.addImage(imgData, 'PNG', 20, currentY, printWidth, printHeight);
-                currentY += printHeight + 20; // 20px gap
-            }
+            pdf.addImage(imgData, 'PNG', 20, 20, printWidth, printHeight);
 
             const fileName = searchType === 'bride'
                 ? `Thirumana_Porutham_For_Bride_${Date.now()}.pdf`
@@ -380,82 +361,90 @@ const MatchFinder = () => {
 
             {/* --- HIDDEN PRINTABLE UI FOR PDF GENERATION --- */}
             {results.length > 0 && (
-                <div style={{ position: 'absolute', top: '-20000px', left: '-20000px', width: '800px', pointerEvents: 'none' }}>
-                    <div ref={printRef} style={{ background: '#ffffff', color: '#000000', padding: '40px', fontFamily: 'sans-serif' }}>
+                <div style={{ position: 'absolute', top: '-20000px', left: '-20000px', width: '1200px', pointerEvents: 'none' }}>
+                    <div ref={printRef} style={{ background: '#ffffff', color: '#000000', padding: '30px', fontFamily: 'sans-serif' }}>
 
-                        <div className="print-title" style={{ background: '#ffffff', paddingBottom: '20px', borderBottom: '2px solid #e5e7eb', marginBottom: '30px' }}>
-                            <h1 style={{ textAlign: 'center', color: '#6d28d9', margin: '0 0 10px 0', fontSize: '28px' }}>
+                        <div className="print-title" style={{ textAlign: 'center', marginBottom: '20px' }}>
+                            <h1 style={{ color: '#6d28d9', margin: '0 0 10px 0', fontSize: '28px' }}>
                                 {searchType === 'bride' ? "பெண்" : "ஆண்"} திருமணப் பொருத்த முடிவுகள் (10 சிறந்த பொருத்தங்கள்)
                             </h1>
-                            <h3 style={{ textAlign: 'center', margin: 0, color: '#4b5563', fontSize: '18px' }}>
+                            <h3 style={{ margin: 0, color: '#4b5563', fontSize: '18px' }}>
                                 (உங்கள் நட்சத்திரம்: {selectedStarObj?.nameTamil} - இராசி: {RASIS.find(r => r.id === parseInt(myRasi))?.nameTamil})
                             </h3>
                         </div>
 
-                        {results.map((res, index) => {
-                            const isExcellent = res.totalScore >= 9;
-                            const isGood = res.totalScore >= 7;
+                        {/* Legend for Important Poruthams */}
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '20px', fontSize: '14px', background: '#fefce8', padding: '10px', borderRadius: '8px', border: '1px solid #fde047' }}>
+                            <span style={{ fontWeight: 'bold' }}>⭐ முக்கிய பொருத்தங்கள் (Big 5):</span>
+                            <span>ராசிப் பொருத்தம்</span>
+                            <span>ராசி அதிபதி பொருத்தம்</span>
+                            <span>ரஜ்ஜிப் பொருத்தம்</span>
+                            <span>மகேந்திரப் பொருத்தம்</span>
+                            <span>யோனிப் பொருத்தம்</span>
+                        </div>
 
-                            return (
-                                <div key={`print-${res.star.id}-${res.rasi.id}`} className="print-match-card" style={{ marginBottom: '40px', border: '2px solid #e5e7eb', borderRadius: '12px', background: '#ffffff' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '15px' }}>
+                            <thead>
+                                <tr style={{ background: '#1e293b', color: '#ffffff' }}>
+                                    <th style={{ padding: '12px 8px', border: '1px solid #e5e7eb', textAlign: 'center' }}>வ.எண்</th>
+                                    <th style={{ padding: '12px 8px', border: '1px solid #e5e7eb', textAlign: 'left', minWidth: '180px' }}>நட்சத்திரம் & இராசி</th>
+                                    <th style={{ padding: '12px 8px', border: '1px solid #e5e7eb' }}>மதிப்பெண்</th>
+                                    {[
+                                        { id: "dina", label: "தினம்" },
+                                        { id: "gana", label: "கணம்" },
+                                        { id: "mahendra", label: "மகேந்திரம்", isImportant: true },
+                                        { id: "sthree", label: "ஸ்திரீ" },
+                                        { id: "yoni", label: "யோனி", isImportant: true },
+                                        { id: "rasi", label: "இராசி", isImportant: true },
+                                        { id: "rasiAthipathi", label: "ராசியதிபதி", isImportant: true },
+                                        { id: "vasya", label: "வசியம்" },
+                                        { id: "rajju", label: "ரஜ்ஜு", isImportant: true },
+                                        { id: "vedhai", label: "வேதை" },
+                                        { id: "nadi", label: "நாடி" },
+                                        { id: "vruksha", label: "விருட்சம்" }
+                                    ].map(p => (
+                                        <th key={p.id} style={{ padding: '8px 2px', border: '1px solid #e5e7eb', background: p.isImportant ? '#f59e0b' : '#334155', color: p.isImportant ? '#000000' : '#ffffff', fontSize: '11px', lineHeight: '1.4', wordWrap: 'break-word', maxWidth: '60px' }}>
+                                            {p.label}{p.isImportant && " ⭐"}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {results.map((res, index) => {
+                                    const isExcellent = res.totalScore >= 9;
+                                    const isGood = res.totalScore >= 7;
 
-                                    {/* Header */}
-                                    <div style={{ background: isExcellent ? '#dcfce7' : isGood ? '#fef3c7' : '#fee2e2', padding: '15px 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTopLeftRadius: '10px', borderTopRightRadius: '10px', borderBottom: '1px solid #e5e7eb' }}>
-                                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#111827' }}>
-                                            #{index + 1} {res.rasi.nameTamil} - {res.star.nameTamil} <span style={{ fontSize: '16px', fontWeight: 'normal' }}>(பாதம் {res.padas})</span>
-                                        </div>
-                                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: isExcellent ? '#166534' : isGood ? '#b45309' : '#991b1b' }}>
-                                            மதிப்பெண்: {res.totalScore} / 12 ({isExcellent ? 'உன்னதம்' : isGood ? 'மத்திமம்' : 'சுமார்'})
-                                        </div>
-                                    </div>
+                                    return (
+                                        <tr key={`print-${res.star.id}-${res.rasi.id}`} style={{ background: index % 2 === 0 ? '#f9fafb' : '#ffffff' }}>
+                                            <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb', fontWeight: 'bold' }}>#{index + 1}</td>
+                                            <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb', textAlign: 'left', fontWeight: 'bold', color: '#111827' }}>
+                                                {res.rasi.nameTamil}<br />
+                                                <span style={{ fontSize: '12px', color: '#4b5563', fontWeight: 'normal' }}>- {res.star.nameTamil} (பா. {res.padas})</span>
+                                            </td>
+                                            <td style={{ padding: '10px 8px', border: '1px solid #e5e7eb', fontWeight: 'bold', color: isExcellent ? '#166534' : isGood ? '#b45309' : '#991b1b', background: isExcellent ? '#dcfce7' : isGood ? '#fef3c7' : '#fee2e2' }}>
+                                                {res.totalScore}/12
+                                            </td>
+                                            {[
+                                                "dina", "gana", "mahendra", "sthree", "yoni", "rasi", "rasiAthipathi", "vasya", "rajju", "vedhai", "nadi", "vruksha"
+                                            ].map(pid => {
+                                                const matchStatus = res.details[pid]?.status === 'Match';
+                                                const isImportant = ["mahendra", "yoni", "rasi", "rasiAthipathi", "rajju"].includes(pid);
 
-                                    {/* 12 Poruthams Table */}
-                                    <div style={{ padding: '0' }}>
-                                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                                            <thead>
-                                                <tr style={{ background: '#f9fafb' }}>
-                                                    <th style={{ padding: '12px 25px', borderBottom: '2px solid #e5e7eb', color: '#374151', width: '60px' }}>எண்</th>
-                                                    <th style={{ padding: '12px 25px', borderBottom: '2px solid #e5e7eb', color: '#374151', flex: 1 }}>பொருத்தம்</th>
-                                                    <th style={{ padding: '12px 25px', borderBottom: '2px solid #e5e7eb', color: '#374151', textAlign: 'center', width: '150px' }}>நிலை</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {[
-                                                    { id: "dina", label: "தினப் பொருத்தம்", isImportant: false },
-                                                    { id: "gana", label: "கணப் பொருத்தம்", isImportant: false },
-                                                    { id: "mahendra", label: "மகேந்திரப் பொருத்தம்", isImportant: true },
-                                                    { id: "sthree", label: "ஸ்திரீ தீர்க்கம்", isImportant: false },
-                                                    { id: "yoni", label: "யோனிப் பொருத்தம்", isImportant: true },
-                                                    { id: "rasi", label: "இராசிப் பொருத்தம்", isImportant: true },
-                                                    { id: "rasiAthipathi", label: "ராசி அதிபதி பொருத்தம்", isImportant: true },
-                                                    { id: "vasya", label: "வசியப் பொருத்தம்", isImportant: false },
-                                                    { id: "rajju", label: "ரஜ்ஜிப் பொருத்தம்", isImportant: true },
-                                                    { id: "vedhai", label: "வேதைப் பொருத்தம்", isImportant: false },
-                                                    { id: "nadi", label: "நாடிப் பொருத்தம்", isImportant: false },
-                                                    { id: "vruksha", label: "விருட்சப் பொருத்தம்", isImportant: false }
-                                                ].map((porutham, idx) => {
-                                                    const matchStatus = res.details[porutham.id]?.status === 'Match';
-                                                    return (
-                                                        <tr key={porutham.id} style={{ background: porutham.isImportant ? '#fefce8' : '#ffffff' }}>
-                                                            <td style={{ padding: '10px 25px', borderBottom: '1px solid #f3f4f6', color: '#6b7280' }}>
-                                                                {idx + 1}
-                                                            </td>
-                                                            <td style={{ padding: '10px 25px', borderBottom: '1px solid #f3f4f6', fontWeight: porutham.isImportant ? 'bold' : 'normal', color: porutham.isImportant ? '#a16c00' : '#111827', fontSize: '16px' }}>
-                                                                {porutham.label} {porutham.isImportant && "⭐ (முக்கியம்)"}
-                                                            </td>
-                                                            <td style={{ padding: '10px 25px', borderBottom: '1px solid #f3f4f6', textAlign: 'center', fontWeight: 'bold', fontSize: '16px', color: matchStatus ? '#059669' : '#dc2626' }}>
-                                                                {matchStatus ? '✅ உண்டு' : '❌ இல்லை'}
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                return (
+                                                    <td key={pid} style={{ padding: '10px 4px', border: '1px solid #e5e7eb', background: isImportant ? '#fefce8' : 'transparent', fontWeight: 'bold', fontSize: '18px', color: matchStatus ? '#059669' : '#dc2626' }}>
+                                                        {matchStatus ? '✅' : '❌'}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
 
-                                </div>
-                            );
-                        })}
+                        <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '12px', color: '#6b7280' }}>
+                            குறிப்பு: ✅ - பொருத்தம் உண்டு, ❌ - பொருத்தம் இல்லை. இந்த அறிக்கை தானியங்கி மூலம் கணிக்கப்பட்டது.
+                        </div>
                     </div>
                 </div>
             )}
