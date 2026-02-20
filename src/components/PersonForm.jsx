@@ -81,6 +81,26 @@ const PersonForm = ({ title, data, onChange, type }) => {
                             chartData={data.navamsamChart || {}}
                             onChange={(val) => onChange({ ...data, navamsamChart: val })}
                         />
+
+                        <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                            <div className="input-group">
+                                <label>பிறந்த இடம் (Birth Place)</label>
+                                <input
+                                    type="text"
+                                    placeholder="ஊர்"
+                                    value={data.birthPlace || ''}
+                                    onChange={(e) => onChange({ ...data, birthPlace: e.target.value })}
+                                />
+                            </div>
+                            <div className="input-group">
+                                <label>பிறந்த நேரம் (Birth Time)</label>
+                                <input
+                                    type="time"
+                                    value={data.birthTime || ''}
+                                    onChange={(e) => onChange({ ...data, birthTime: e.target.value })}
+                                />
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
