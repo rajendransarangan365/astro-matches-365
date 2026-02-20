@@ -314,6 +314,7 @@ export const calculatePorutham = (bride, groom) => {
 
     const summaryReport = {
         percentage,
+        totalScore,
         pros,
         cons,
         lifeSummary,
