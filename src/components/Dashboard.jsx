@@ -59,9 +59,9 @@ const Dashboard = ({ savedBrides, savedGrooms, savedMatches, onBack }) => {
                             value={quickMatchBride}
                             onChange={(e) => setQuickMatchBride(e.target.value)}
                         >
-                            <option value="">தேர்ந்தெடுக்கவும்...</option>
+                            <option value="" style={{ color: 'black', background: 'white' }}>தேர்ந்தெடுக்கவும்...</option>
                             {savedBrides.map(b => (
-                                <option key={b._id} value={b._id}>{b.profileData.name} ({b.profileData.rasiId ? 'கட்டம் கணக்கிடப்பட்டது' : 'நட்சத்திரம் மட்டும்'})</option>
+                                <option key={b._id} value={b._id} style={{ color: 'black', background: 'white' }}>{b.profileData.name} ({b.profileData.rasiId ? 'கட்டம் கணக்கிடப்பட்டது' : 'நட்சத்திரம் மட்டும்'})</option>
                             ))}
                         </select>
                     </div>
@@ -72,9 +72,9 @@ const Dashboard = ({ savedBrides, savedGrooms, savedMatches, onBack }) => {
                             value={quickMatchGroom}
                             onChange={(e) => setQuickMatchGroom(e.target.value)}
                         >
-                            <option value="">தேர்ந்தெடுக்கவும்...</option>
+                            <option value="" style={{ color: 'black', background: 'white' }}>தேர்ந்தெடுக்கவும்...</option>
                             {savedGrooms.map(g => (
-                                <option key={g._id} value={g._id}>{g.profileData.name} ({g.profileData.rasiId ? 'கட்டம் கணக்கிடப்பட்டது' : 'நட்சத்திரம் மட்டும்'})</option>
+                                <option key={g._id} value={g._id} style={{ color: 'black', background: 'white' }}>{g.profileData.name} ({g.profileData.rasiId ? 'கட்டம் கணக்கிடப்பட்டது' : 'நட்சத்திரம் மட்டும்'})</option>
                             ))}
                         </select>
                     </div>
