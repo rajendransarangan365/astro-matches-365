@@ -31,12 +31,14 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.5;
+  overflow-x: hidden;
 }
 
 .container {
   max-width: 600px;
   margin: 0 auto;
   padding: 1.5rem;
+  width: 100%;
 }
 
 .glass-card {
@@ -47,6 +49,7 @@ body {
   border-radius: 1.5rem;
   padding: 1.5rem;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  width: 100%;
 }
 
 h1,
@@ -224,15 +227,51 @@ button:active {
 
 /* Mobile optimizations */
 @media (max-width: 480px) {
+
+  html,
+  body {
+    overflow-x: hidden;
+    position: relative;
+    width: 100%;
+  }
+
   .container {
-    padding: 1rem;
+    padding: 0.75rem;
+    overflow-x: hidden;
   }
 
   .glass-card {
-    padding: 1.25rem;
+    padding: 1rem;
+    border-radius: 1rem;
   }
 
   .title-section h1 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
+  }
+
+  .title-section p {
+    font-size: 0.8rem;
+  }
+
+  .form-grid {
+    gap: 0.75rem;
+  }
+
+  input,
+  select,
+  button {
+    font-size: 0.9rem;
+    padding: 0.65rem;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 350px) {
+  .title-section h1 {
+    font-size: 1.25rem;
+  }
+
+  .glass-card {
+    padding: 0.75rem;
   }
 }

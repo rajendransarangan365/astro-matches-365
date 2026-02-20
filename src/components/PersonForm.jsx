@@ -39,7 +39,7 @@ const PersonForm = ({ title, data, onChange, type }) => {
                 <User size={20} /> {title}
             </h3>
 
-            <div className="form-grid" style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-grid" style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
                 {/* 1. Name */}
                 <div className="input-group" style={{ gridColumn: '1 / span 2' }}>
                     <label><User size={16} /> பெயர் (Name)</label>
@@ -106,7 +106,7 @@ const PersonForm = ({ title, data, onChange, type }) => {
             </div>
 
             <div style={{ marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                     <div className="input-group">
                         <label><Moon size={16} /> இராசி (Rasi)</label>
                         <select
