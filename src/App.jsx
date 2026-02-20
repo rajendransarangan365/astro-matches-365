@@ -1,22 +1,26 @@
 import React, { useState } from 'react';
 import PersonForm from './components/PersonForm';
 import PoruthamResult from './components/PoruthamResult';
-import { Heart, Sparkles, LogOut, Save, CheckCircle2 } from 'lucide-react';
+import { Heart, Sparkles, LogOut, Save, CheckCircle2, History } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 
 import { useProfiles } from './hooks/useProfiles';
 import { usePorutham } from './hooks/usePorutham';
+import { useMatches } from './hooks/useMatches';
+import Dashboard from './components/Dashboard';
 
 function App() {
   const { user, token, logout, isAuthenticated, loading } = useAuth();
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
+  const [showDashboard, setShowDashboard] = useState(false);
 
   const [brideData, setBrideData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
   const [groomData, setGroomData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
 
   const { savedBrides, savedGrooms, profileSaveStatus, handleSaveProfile } = useProfiles(token);
+  const { savedMatches, fetchMatches } = useMatches(token);
   const { result, saveStatus, handleCalculate, handleSaveMatch } = usePorutham(token, brideData, groomData);
 
   if (loading) return <div className="container">Loading...</div>;
@@ -35,66 +39,90 @@ function App() {
         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
           வணக்கம், <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{user?.name}</span>
         </div>
-        <button onClick={logout} style={{ width: 'auto', padding: '0.5rem 1rem', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.2)', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <LogOut size={14} /> வெளியேறு (Logout)
-        </button>
-      </div>
 
-      <div className="title-section">
-        <h1>திருமணப் பொருத்தம்</h1>
-        <p>Tamil Marriage Compatibility Matching</p>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <PersonForm
-          title="பெண் (Bride)"
-          data={brideData}
-          onChange={setBrideData}
-          type="bride"
-          profiles={savedBrides}
-          onSaveProfile={handleSaveProfile}
-          saveStatus={profileSaveStatus.type === 'bride' ? profileSaveStatus.status : null}
-        />
-
-        <div style={{ display: 'flex', justifyContent: 'center', opacity: 0.5 }}>
-          <Heart size={32} />
-        </div>
-
-        <PersonForm
-          title="ஆண் (Groom)"
-          data={groomData}
-          onChange={setGroomData}
-          type="groom"
-          profiles={savedGrooms}
-          onSaveProfile={handleSaveProfile}
-          saveStatus={profileSaveStatus.type === 'groom' ? profileSaveStatus.status : null}
-        />
-
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button onClick={handleCalculate} style={{ flex: 1 }}>
-            <Sparkles size={20} /> பொருத்தம் பார்க்க (Check Match)
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={() => {
+              if (!showDashboard) fetchMatches();
+              setShowDashboard(!showDashboard);
+            }}
+            style={{ width: 'auto', padding: '0.5rem 1rem', background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.2)', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+          >
+            <History size={14} /> டிராக்கிங் டேஷ்போர்டு (Dashboard)
           </button>
 
-          {result && (
-            <button
-              onClick={handleSaveMatch}
-              disabled={saveStatus === 'saving'}
-              style={{
-                flex: 1,
-                background: saveStatus === 'success' ? '#4ade80' : 'rgba(251, 191, 36, 0.1)',
-                color: saveStatus === 'success' ? 'black' : 'var(--primary)',
-                border: '1px solid var(--primary)'
-              }}
-            >
-              {saveStatus === 'saving' ? 'சேமிக்கப்படுகிறது...' :
-                saveStatus === 'success' ? <><CheckCircle2 size={20} /> சேமிக்கப்பட்டது</> :
-                  <><Save size={20} /> விவரங்களைச் சேமி (Save Details)</>}
-            </button>
-          )}
+          <button onClick={logout} style={{ width: 'auto', padding: '0.5rem 1rem', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.2)', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <LogOut size={14} /> வெளியேறு (Logout)
+          </button>
         </div>
-
-        {result && <PoruthamResult data={result} />}
       </div>
+
+      {!showDashboard && (
+        <div className="title-section">
+          <h1>திருமணப் பொருத்தம்</h1>
+          <p>Tamil Marriage Compatibility Matching</p>
+        </div>
+      )}
+
+      {showDashboard ? (
+        <Dashboard
+          savedBrides={savedBrides}
+          savedGrooms={savedGrooms}
+          savedMatches={savedMatches}
+          onBack={() => setShowDashboard(false)}
+        />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <PersonForm
+            title="பெண் (Bride)"
+            data={brideData}
+            onChange={setBrideData}
+            type="bride"
+            profiles={savedBrides}
+            onSaveProfile={handleSaveProfile}
+            saveStatus={profileSaveStatus.type === 'bride' ? profileSaveStatus.status : null}
+          />
+
+          <div style={{ display: 'flex', justifyContent: 'center', opacity: 0.5 }}>
+            <Heart size={32} />
+          </div>
+
+          <PersonForm
+            title="ஆண் (Groom)"
+            data={groomData}
+            onChange={setGroomData}
+            type="groom"
+            profiles={savedGrooms}
+            onSaveProfile={handleSaveProfile}
+            saveStatus={profileSaveStatus.type === 'groom' ? profileSaveStatus.status : null}
+          />
+
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button onClick={handleCalculate} style={{ flex: 1 }}>
+              <Sparkles size={20} /> பொருத்தம் பார்க்க (Check Match)
+            </button>
+
+            {result && (
+              <button
+                onClick={handleSaveMatch}
+                disabled={saveStatus === 'saving'}
+                style={{
+                  flex: 1,
+                  background: saveStatus === 'success' ? '#4ade80' : 'rgba(251, 191, 36, 0.1)',
+                  color: saveStatus === 'success' ? 'black' : 'var(--primary)',
+                  border: '1px solid var(--primary)'
+                }}
+              >
+                {saveStatus === 'saving' ? 'சேமிக்கப்படுகிறது...' :
+                  saveStatus === 'success' ? <><CheckCircle2 size={20} /> சேமிக்கப்பட்டது</> :
+                    <><Save size={20} /> விவரங்களைச் சேமி (Save Details)</>}
+              </button>
+            )}
+          </div>
+
+          {result && <PoruthamResult data={result} />}
+        </div>
+      )}
 
       <footer style={{ marginTop: '3rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
         <p>© 2026 Tamil Marriage Matching • Made with ❤️</p>
