@@ -41,66 +41,78 @@ const RasiHouseInput = ({ houseId, planets, onTogglePlanet }) => {
 
             <AnimatePresence>
                 {showPicker && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
+                    <div
                         style={{
                             position: 'fixed',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
                             zIndex: 1000,
-                            background: 'rgba(30, 41, 59, 0.95)',
-                            backdropFilter: 'blur(20px)',
-                            border: '1px solid var(--primary)',
-                            borderRadius: '1.5rem',
-                            padding: '1.5rem',
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                            width: '95vw',
-                            maxWidth: '320px',
-                            maxHeight: '90vh',
-                            overflowY: 'auto'
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'rgba(0,0,0,0.5)',
+                            padding: '1rem'
                         }}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={() => setShowPicker(false)}
                     >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                            <h5 style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 'bold' }}>கிரகங்களைத் தேர்ந்தெடுக்கவும்</h5>
-                            <X size={20} cursor="pointer" onClick={() => setShowPicker(false)} />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
-                            {PLANETS.map(p => (
-                                <button
-                                    key={p.id}
-                                    onClick={() => onTogglePlanet(houseId, p.id)}
-                                    style={{
-                                        padding: '0.75rem 0.5rem',
-                                        fontSize: '0.8rem',
-                                        background: planets.includes(p.id) ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                        color: planets.includes(p.id) ? 'black' : 'white',
-                                        border: '1px solid ' + (planets.includes(p.id) ? 'var(--primary)' : 'rgba(255,255,255,0.1)'),
-                                        borderRadius: '0.75rem',
-                                        fontWeight: '500',
-                                        margin: 0
-                                    }}
-                                >
-                                    {p.nameTamil}
-                                </button>
-                            ))}
-                        </div>
-                        <button
-                            onClick={() => setShowPicker(false)}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
                             style={{
-                                marginTop: '1.5rem',
-                                background: '#334155',
-                                color: 'white',
-                                borderRadius: '0.75rem',
-                                padding: '0.75rem'
+                                background: 'rgba(30, 41, 59, 0.98)',
+                                backdropFilter: 'blur(20px)',
+                                border: '1px solid var(--primary)',
+                                borderRadius: '1rem',
+                                padding: '1.25rem',
+                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                                width: '100%',
+                                maxWidth: '300px',
+                                maxHeight: '85vh',
+                                overflowY: 'auto'
                             }}
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            சரி (Done)
-                        </button>
-                    </motion.div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h5 style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 'bold', margin: 0 }}>கிரகங்களைத் தேர்வு செய்க</h5>
+                                <X size={18} cursor="pointer" onClick={() => setShowPicker(false)} />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
+                                {PLANETS.map(p => (
+                                    <button
+                                        key={p.id}
+                                        onClick={() => onTogglePlanet(houseId, p.id)}
+                                        style={{
+                                            padding: '0.6rem 0.4rem',
+                                            fontSize: '0.75rem',
+                                            background: planets.includes(p.id) ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                            color: planets.includes(p.id) ? 'black' : 'white',
+                                            border: '1px solid ' + (planets.includes(p.id) ? 'var(--primary)' : 'rgba(255,255,255,0.1)'),
+                                            borderRadius: '0.5rem',
+                                            fontWeight: '500',
+                                            margin: 0
+                                        }}
+                                    >
+                                        {p.nameTamil}
+                                    </button>
+                                ))}
+                            </div>
+                            <button
+                                onClick={() => setShowPicker(false)}
+                                style={{
+                                    marginTop: '1rem',
+                                    background: '#334155',
+                                    color: 'white',
+                                    borderRadius: '0.5rem',
+                                    padding: '0.6rem'
+                                }}
+                            >
+                                சரி (Done)
+                            </button>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </div>
