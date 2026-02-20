@@ -12,18 +12,33 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri);
+const uri = (process.env.MONGODB_URI || "").trim();
+const client = new MongoClient(uri, {
+    connectTimeoutMS: 10000,
+    serverSelectionTimeoutMS: 10000,
+});
 
 let db, usersCollection, matchesCollection;
 
 async function connectToDb() {
     if (db) return { usersCollection, matchesCollection };
-    await client.connect();
-    db = client.db("astro365");
-    usersCollection = db.collection("users");
-    matchesCollection = db.collection("matches");
-    return { usersCollection, matchesCollection };
+    try {
+        console.log("Attempting to connect to MongoDB...");
+        await client.connect();
+        console.log("Connected successfully to MongoDB");
+        db = client.db("astro365");
+        usersCollection = db.collection("users");
+        matchesCollection = db.collection("matches");
+        return { usersCollection, matchesCollection };
+    } catch (error) {
+        console.error("MongoDB Connection Error Details:", {
+            message: error.message,
+            code: error.code,
+            name: error.name,
+            stack: error.stack
+        });
+        throw error;
+    }
 }
 
 // Signup
