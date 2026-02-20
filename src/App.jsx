@@ -11,8 +11,8 @@ function App() {
   const { user, token, logout, isAuthenticated, loading } = useAuth();
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
 
-  const [brideData, setBrideData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '' });
-  const [groomData, setGroomData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '' });
+  const [brideData, setBrideData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
+  const [groomData, setGroomData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
   const [result, setResult] = useState(null);
   const [saveStatus, setSaveStatus] = useState(null);
 

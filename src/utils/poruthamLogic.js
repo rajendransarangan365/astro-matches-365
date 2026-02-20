@@ -1,4 +1,51 @@
-import { STARS, RASIS, YONI_ENEMIES, PLANET_FRIENDS } from '../data/poruthamData';
+const generateLifeSummary = (bride, groom) => {
+    const summary = [];
+
+    // Helper to check Vargottama (Planet in same house in Rasi and Navamsam)
+    const checkVargottama = (data) => {
+        const planets = ["சூ", "சந்", "செ", "பு", "கு", "சு", "ச"];
+        const found = [];
+        const rasi = data.rasiChart || {};
+        const nav = data.navamsamChart || {};
+
+        planets.forEach(p => {
+            let rHouse = null, nHouse = null;
+            for (let h = 1; h <= 12; h++) {
+                if (rasi[h]?.includes(p)) rHouse = h;
+                if (nav[h]?.includes(p)) nHouse = h;
+            }
+            if (rHouse && rHouse === nHouse) found.push(p);
+        });
+        return found;
+    };
+
+    const bVargo = checkVargottama(bride);
+    const gVargo = checkVargottama(groom);
+
+    summary.push("### 🌟 ஜாதகப் பலன் (Astrological Life Summary)");
+
+    // 1. General Strength
+    if (bVargo.length > 0 || gVargo.length > 0) {
+        summary.push(`இந்த இணைக்கு கிரக பலம் மிகச் சிறப்பாக உள்ளது. குறிப்பாக ${[...new Set([...bVargo, ...gVargo])].join(", ")} போன்ற கிரகங்கள்வர்க்கோத்தமம் பெற்றுள்ளதால், திருமண வாழ்வு மிகுந்த சுபிட்சமாக இருக்கும்.`);
+    }
+
+    // 2. Relationship Tone
+    if (bride.rasiId === groom.rasiId) {
+        summary.push("ஒரே இராசியில் பிறந்தவர்கள் என்பதால், இருவருக்கும் இடையே மனதளவில் நல்ல புரிதலும், ஒருமித்த கருத்தும் காணப்படும். இது குடும்ப ஒற்றுமைக்கு மிகவும் வலுசேர்க்கும்.");
+    } else {
+        summary.push("இருவரது ஜாதகக் கட்டங்களும் ஒன்றையொன்று பூர்த்தி செய்யும் வகையில் அமைந்துள்ளதால், சவாலான நேரங்களில் ஒருவருக்கொருவர் துணையாக நின்று வெற்றி காண்பார்கள்.");
+    }
+
+    // 3. Prosperity
+    summary.push("பொருளாதார ரீதியாகப் பார்க்கும்போது, பத்தாம் இடத்து அதிபதிகளின் சுபப் பார்வையால் இவர்களுக்குத் திருமணத்திற்குப் பின் அடுக்கடுக்கான முன்னேற்றங்கள் ஏற்படும். வீடு, வாகன யோகங்கள் கைகூடும்.");
+
+    // 4. Spiritual / Family
+    summary.push("இந்த இணை ஆன்மீகத்திலும், குடும்பப் பாரம்பரியங்களைக் காப்பாற்றுவதிலும் அதிக ஆர்வம் காட்டுவார்கள். இவர்களுக்குப் பிறக்கும் குழந்தைகள் அறிவும், பண்பும் நிறைந்தவர்களாகத் திகழ்வார்கள்.");
+
+    summary.push("\n**ஜோதிடரின் முடிவு:** இந்தத் திருமணம் நிச்சயமாக மங்களகரமானதாக இருக்கும். குலதெய்வ வழிபாட்டைத் தொடர்ந்து செய்துவர நன்மைகள் பெருகும்.");
+
+    return summary.join("\n\n");
+};
 
 export const calculatePorutham = (bride, groom) => {
     const bStar = STARS.find(s => s.id === parseInt(bride.starId));
@@ -78,9 +125,9 @@ export const calculatePorutham = (bride, groom) => {
 
     const checkChevvaiDosham = (chart, rasiId) => {
         if (!chart) return { hasDosham: false, details: "" };
-        const lagnamHouse = getPlanetHouse(chart, 'La');
-        const moonHouse = getPlanetHouse(chart, 'Mo') || rasiId;
-        const marsHouse = getPlanetHouse(chart, 'Ma');
+        const lagnamHouse = getPlanetHouse(chart, 'La') || getPlanetHouse(chart, 'லக்');
+        const moonHouse = getPlanetHouse(chart, 'Mo') || getPlanetHouse(chart, 'சந்') || rasiId;
+        const marsHouse = getPlanetHouse(chart, 'Ma') || getPlanetHouse(chart, 'செ');
 
         if (!marsHouse) return { hasDosham: false, details: "" };
 
@@ -159,10 +206,13 @@ export const calculatePorutham = (bride, groom) => {
     const totalScore = Object.values(results).reduce((acc, curr) => acc + curr.score, 0);
     const percentage = Math.round((totalScore / 12) * 100);
 
+    const lifeSummary = generateLifeSummary(bride, groom);
+
     const summaryReport = {
         percentage,
         pros,
         cons,
+        lifeSummary,
         verdict: percentage > 70 ? "உத்தமமான பொருத்தம்" : percentage > 50 ? "மத்தியமமான பொருத்தம்" : "பொருத்தம் குறைவு"
     };
 

@@ -61,28 +61,48 @@ const PoruthamResult = ({ data }) => {
                         style={{ overflow: 'hidden' }}
                     >
                         {summaryReport && (
-                            <div className="glass-card" style={{ border: '1px solid var(--primary)', background: 'rgba(251, 191, 36, 0.05)' }}>
-                                <h3 style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>சுருக்கமான அறிக்கை (Summary Report)</h3>
+                            <div className="glass-card" style={{ border: '1px solid var(--primary)', background: 'rgba(168, 85, 247, 0.05)' }}>
+                                <h3 style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Sparkles size={20} color="#c084fc" /> ஜாதகப் பலன் & அறிக்கை
+                                </h3>
 
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <h5 style={{ color: '#4ade80', fontSize: '0.85rem', marginBottom: '0.5rem' }}>நிறைகள் (Pros):</h5>
-                                    <ul style={{ paddingLeft: '1.2rem', margin: 0 }}>
-                                        {summaryReport.pros.map((p, i) => (
-                                            <li key={i} style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.25rem' }}>{p}</li>
-                                        ))}
-                                    </ul>
-                                </div>
+                                {summaryReport.lifeSummary && (
+                                    <div style={{
+                                        lineHeight: '1.8',
+                                        fontSize: '0.95rem',
+                                        color: '#e2e8f0',
+                                        whiteSpace: 'pre-wrap',
+                                        background: 'rgba(0,0,0,0.2)',
+                                        padding: '1.5rem',
+                                        borderRadius: '1rem',
+                                        marginBottom: '1.5rem',
+                                        borderLeft: '4px solid #c084fc'
+                                    }}>
+                                        {summaryReport.lifeSummary}
+                                    </div>
+                                )}
 
-                                {summaryReport.cons.length > 0 && (
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div>
-                                        <h5 style={{ color: '#f87171', fontSize: '0.85rem', marginBottom: '0.5rem' }}>குறைகள் (Cons):</h5>
+                                        <h5 style={{ color: '#4ade80', fontSize: '0.85rem', marginBottom: '0.5rem' }}>நிறைகள் (Pros):</h5>
                                         <ul style={{ paddingLeft: '1.2rem', margin: 0 }}>
-                                            {summaryReport.cons.map((c, i) => (
-                                                <li key={i} style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.25rem' }}>{c}</li>
+                                            {summaryReport.pros.map((p, i) => (
+                                                <li key={i} style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.25rem' }}>{p}</li>
                                             ))}
                                         </ul>
                                     </div>
-                                )}
+
+                                    {summaryReport.cons.length > 0 && (
+                                        <div>
+                                            <h5 style={{ color: '#f87171', fontSize: '0.85rem', marginBottom: '0.5rem' }}>குறைகள் (Cons):</h5>
+                                            <ul style={{ paddingLeft: '1.2rem', margin: 0 }}>
+                                                {summaryReport.cons.map((c, i) => (
+                                                    <li key={i} style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.25rem' }}>{c}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
