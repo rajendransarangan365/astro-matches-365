@@ -257,7 +257,7 @@ export const calculatePorutham = (bride, groom) => {
     }
 
     const totalScore = Object.values(results).reduce((acc, curr) => acc + curr.score, 0);
-    const percentage = Math.round((totalScore / 12) * 100);
+    const percentage = Math.min(100, Math.round((totalScore / 12) * 100));
 
     const lifeSummary = generateLifeSummary(bride, groom, bDosham, gDosham, bNavamsa, gNavamsa, hasCharts);
 

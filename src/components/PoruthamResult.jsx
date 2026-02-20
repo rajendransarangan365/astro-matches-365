@@ -72,7 +72,7 @@ const PoruthamResult = ({ data }) => {
     };
 
     return (
-        <div className="results-section">
+        <div className="results-section" ref={reportRef} style={{ padding: isDownloading ? '2rem 1rem' : 0, background: isDownloading ? '#020617' : 'transparent', borderRadius: '1rem' }}>
             <motion.div
                 layout
                 className={`match-status ${canMarry ? 'success' : 'fail'}`}
@@ -102,52 +102,55 @@ const PoruthamResult = ({ data }) => {
                     <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{summaryReport?.verdict}</div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem', marginBottom: '0.5rem' }}>
-                    <button
-                        onClick={handleDownloadPDF}
-                        disabled={isDownloading}
-                        style={{
-                            background: 'rgba(251, 191, 36, 0.15)',
-                            color: 'var(--primary)',
-                            border: '1px solid var(--primary)',
-                            width: 'auto',
-                            padding: '0.5rem 1rem',
-                            fontSize: '0.85rem',
-                            marginTop: 0,
-                            opacity: isDownloading ? 0.5 : 1
-                        }}
-                    >
-                        {isDownloading ? 'தயாராகிறது...' : <><Download size={16} /> PDF டவுன்லோட்</>}
-                    </button>
-                    <button
-                        onClick={handleWhatsAppShare}
-                        style={{
-                            background: 'rgba(34, 197, 94, 0.15)',
-                            color: '#4ade80',
-                            border: '1px solid #4ade80',
-                            width: 'auto',
-                            padding: '0.5rem 1rem',
-                            fontSize: '0.85rem',
-                            marginTop: 0
-                        }}
-                    >
-                        <Share2 size={16} /> WhatsApp-ல் பகிர்க
-                    </button>
-                </div>
+                {!isDownloading && (
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem', marginBottom: '0.5rem' }}>
+                        <button
+                            onClick={handleDownloadPDF}
+                            disabled={isDownloading}
+                            style={{
+                                background: 'rgba(251, 191, 36, 0.15)',
+                                color: 'var(--primary)',
+                                border: '1px solid var(--primary)',
+                                width: 'auto',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.85rem',
+                                marginTop: 0,
+                                opacity: isDownloading ? 0.5 : 1
+                            }}
+                        >
+                            {isDownloading ? 'தயாராகிறது...' : <><Download size={16} /> PDF டவுன்லோட்</>}
+                        </button>
+                        <button
+                            onClick={handleWhatsAppShare}
+                            style={{
+                                background: 'rgba(34, 197, 94, 0.15)',
+                                color: '#4ade80',
+                                border: '1px solid #4ade80',
+                                width: 'auto',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.85rem',
+                                marginTop: 0
+                            }}
+                        >
+                            <Share2 size={16} /> WhatsApp-ல் பகிர்க
+                        </button>
+                    </div>
+                )}
 
-                <div style={{ marginTop: '1rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', opacity: 0.7 }}>
-                    {showDetails ? (
-                        <><ChevronUp size={14} /> விவரங்களை மறை (Hide Details)</>
-                    ) : (
-                        <><ChevronDown size={14} /> விவரங்களைக் காண சொடுக்கவும் (Click for details)</>
-                    )}
-                </div>
+                {!isDownloading && (
+                    <div style={{ marginTop: '1rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', opacity: 0.7 }}>
+                        {showDetails ? (
+                            <><ChevronUp size={14} /> விவரங்களை மறை (Hide Details)</>
+                        ) : (
+                            <><ChevronDown size={14} /> விவரங்களைக் காண சொடுக்கவும் (Click for details)</>
+                        )}
+                    </div>
+                )}
             </motion.div>
 
             <AnimatePresence>
                 {showDetails && (
                     <motion.div
-                        ref={reportRef}
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
