@@ -10,8 +10,9 @@ const client = new MongoClient(uri, {
         strict: true,
         deprecationErrors: true,
     },
+    tls: true,
+    serverSelectionTimeoutMS: 5000,
     connectTimeoutMS: 10000,
-    serverSelectionTimeoutMS: 10000,
 });
 
 let db, usersCollection, matchesCollection, profilesCollection;
