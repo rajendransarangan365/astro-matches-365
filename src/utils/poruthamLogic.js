@@ -1,3 +1,5 @@
+import { STARS, RASIS, YONI_ENEMIES, PLANET_FRIENDS } from '../data/poruthamData';
+
 const generateLifeSummary = (bride, groom) => {
     const summary = [];
 
