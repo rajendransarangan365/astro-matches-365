@@ -261,9 +261,22 @@ const PoruthamResult = ({ data }) => {
                                             )}
                                         </div>
                                     </div>
-                                    <div style={{ marginTop: '1rem', padding: '0.75rem', borderRadius: '0.5rem', background: doshamResult.match === 'Match' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(248, 113, 113, 0.1)' }}>
-                                        <p style={{ margin: 0, fontSize: '0.9rem', color: doshamResult.match === 'Match' ? '#4ade80' : '#f87171', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            {doshamResult.match === 'Match' ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                                    <div style={{
+                                        marginTop: '1rem',
+                                        padding: '0.75rem',
+                                        borderRadius: '0.5rem',
+                                        background: doshamResult.match === 'Match' ? 'rgba(74, 222, 128, 0.1)' : doshamResult.match === 'No Match' ? 'rgba(248, 113, 113, 0.1)' : 'rgba(148, 163, 184, 0.1)'
+                                    }}>
+                                        <p style={{
+                                            margin: 0,
+                                            fontSize: '0.9rem',
+                                            color: doshamResult.match === 'Match' ? '#4ade80' : doshamResult.match === 'No Match' ? '#f87171' : '#94a3b8',
+                                            fontWeight: 'bold',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem'
+                                        }}>
+                                            {doshamResult.match === 'Match' ? <CheckCircle2 size={16} /> : doshamResult.match === 'No Match' ? <XCircle size={16} /> : <AlertCircle size={16} />}
                                             முடிவு: {doshamResult.recommendation}
                                         </p>
                                     </div>
