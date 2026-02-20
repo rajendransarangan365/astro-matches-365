@@ -39,6 +39,7 @@ const CITY_COORDINATES = {
     "Thoothukudi": { lat: 8.7642, lng: 78.1348 },
     "Thanjavur": { lat: 10.7870, lng: 79.1378 },
     "Nagercoil": { lat: 8.1833, lng: 77.4119 },
+    "Karaikudi": { lat: 10.0747, lng: 78.7735 },
     "Kanyakumari": { lat: 8.0883, lng: 77.5385 },
     "Rameswaram": { lat: 9.2881, lng: 79.3129 },
     "Pondicherry": { lat: 11.9416, lng: 79.8083 }
@@ -51,19 +52,15 @@ export const calculateAstroDetails = async (dob, time, place, meridian = 'AM') =
         // 1. Get Coordinates
         const coords = CITY_COORDINATES[place] || CITY_COORDINATES["Chennai"];
 
-        // 2. Prepare Date with Meridian correction
-        const [year, month, day] = dob.split('-').map(Number);
+        // 2. Prepare Time with IST offset (+05:30)
         let [hours, minutes] = time.split(':').map(Number);
-
         if (meridian === 'PM' && hours < 12) hours += 12;
         if (meridian === 'AM' && hours === 12) hours = 0;
 
-        // Use UTC offset for India (+5:30) if possible, or just local date
-        // Note: vedic-astro expects { iso } which usually implies UTC or ISO with offset
-        const date = new Date(year, month - 1, day, hours, minutes);
-        const iso = date.toISOString();
+        const pad = (n) => String(n).padStart(2, '0');
+        const iso = `${dob}T${pad(hours)}:${pad(minutes)}:00+05:30`;
 
-        console.log("Calculated ISO:", iso, "using coordinates:", coords);
+        console.log("Forced IST ISO:", iso);
 
         const location = { latitude: coords.lat, longitude: coords.lng };
 
@@ -73,19 +70,17 @@ export const calculateAstroDetails = async (dob, time, place, meridian = 'AM') =
         const moonSign = getMoonSign(eph);
         const kundali = getKundali(eph);
 
-        console.log("Library Output Sample:", {
-            rashi: moonSign.rashi,
-            star: panchang.nakshatra,
-            houses: kundali?.houses?.length
-        });
+        console.log("Library raw sample:", { rashi: moonSign.rashi, star: panchang.nakshatra });
 
-        // 4. Map Rasi and Star (Library returns English names like 'Aries', 'Ashwini')
-        // We use a helper to find the index
-        const RASI_ENG = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-        const STAR_ENG = ["Ashwini", "Bharani", "Krittika", "Rohini", "Mrigasira", "Ardra", "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Moola", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"];
+        // 4. Map Rasi and Star (Library uses Sanskrit names)
+        const RASI_ENG = ["Mesha", "Vrishabha", "Mithuna", "Karka", "Simha", "Kanya", "Tula", "Vrishchika", "Dhanu", "Makara", "Kumbha", "Meena"];
+        const STAR_ENG = ["Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashirsa", "Ardra", "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanistha", "Shatabhisha", "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"];
 
-        const rasiId = RASI_ENG.indexOf(moonSign.rashi) + 1 || 1;
-        const starId = STAR_ENG.indexOf(panchang.nakshatra) + 1 || 1;
+        // Normalize string for safety
+        const matchName = (arr, val) => arr.findIndex(name => name.toLowerCase() === val?.toLowerCase()) + 1;
+
+        const rasiId = matchName(RASI_ENG, moonSign.rashi) || 1;
+        const starId = matchName(STAR_ENG, panchang.nakshatra) || 1;
 
         // 5. Generate Charts
         const rasiChart = {};
@@ -93,22 +88,24 @@ export const calculateAstroDetails = async (dob, time, place, meridian = 'AM') =
         if (kundali && kundali.houses) {
             kundali.houses.forEach((house, index) => {
                 const houseNum = index + 1;
-                // Planets might be in house.planets (array of codes)
-                const planetsInHouse = house.planets || [];
-                if (planetsInHouse.length > 0) {
-                    rasiChart[houseNum] = planetsInHouse.map(p => translatePlanet(p));
+                const planets = house.planets || [];
+                if (planets.length > 0) {
+                    // Map directly to English IDs (Su, Mo, etc.)
+                    rasiChart[houseNum] = planets;
                 }
             });
 
-            // Lagnam (Ascendant)
+            // Lagnam
             if (kundali.ascendant) {
                 const lagnaHouse = kundali.ascendant.house;
                 if (!rasiChart[lagnaHouse]) rasiChart[lagnaHouse] = [];
-                if (!rasiChart[lagnaHouse].includes("லக்")) {
-                    rasiChart[lagnaHouse].push("லக்");
+                if (!rasiChart[lagnaHouse].includes("La")) {
+                    rasiChart[lagnaHouse].push("La");
                 }
             }
         }
+
+        console.log("Final Calculated State:", { rasiId, starId, chartKeys: Object.keys(rasiChart) });
 
         console.log("Generated Rasi Chart:", rasiChart);
 
@@ -127,18 +124,8 @@ export const calculateAstroDetails = async (dob, time, place, meridian = 'AM') =
 };
 
 const translatePlanet = (planetCode) => {
-    const map = {
-        "Su": "சூ",
-        "Mo": "சந்",
-        "Ma": "செ",
-        "Me": "பு",
-        "Ju": "கு",
-        "Ve": "சு",
-        "Sa": "ச",
-        "Ra": "ரா",
-        "Ke": "கே"
-    };
-    return map[planetCode] || planetCode;
+    // UI components now handle translation using PLANETS metadata
+    return planetCode;
 };
 
 const rasiIdToHouse = (signName) => {

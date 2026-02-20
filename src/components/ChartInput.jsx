@@ -27,7 +27,7 @@ const RasiHouseInput = ({ houseId, planets, onTogglePlanet }) => {
                     const planet = PLANETS.find(p => p.id === pId);
                     return (
                         <span key={pId} style={{ background: 'var(--primary)', color: 'black', padding: '0 2px', borderRadius: '2px' }}>
-                            {planet?.id}
+                            {planet?.nameTamilShort || pId}
                         </span>
                     );
                 })}

@@ -64,14 +64,14 @@ export const PLANET_FRIENDS = {
 };
 
 export const PLANETS = [
-  { id: "Su", nameTamil: "சூரியன்", nameEnglish: "Sun" },
-  { id: "Mo", nameTamil: "சந்திரன்", nameEnglish: "Moon" },
-  { id: "Ma", nameTamil: "செவ்வாய்", nameEnglish: "Mars" },
-  { id: "Me", nameTamil: "புதன்", nameEnglish: "Mercury" },
-  { id: "Ju", nameTamil: "குரு", nameEnglish: "Jupiter" },
-  { id: "Ve", nameTamil: "சுக்கிரன்", nameEnglish: "Venus" },
-  { id: "Sa", nameTamil: "சனி", nameEnglish: "Saturn" },
-  { id: "Ra", nameTamil: "ராகு", nameEnglish: "Rahu" },
-  { id: "Ke", nameTamil: "கேது", nameEnglish: "Ketu" },
-  { id: "La", nameTamil: "லக்கினம்", nameEnglish: "Lagnam" }
+  { id: "Su", nameTamil: "சூரியன்", nameTamilShort: "சூ", nameEnglish: "Sun" },
+  { id: "Mo", nameTamil: "சந்திரன்", nameTamilShort: "சந்", nameEnglish: "Moon" },
+  { id: "Ma", nameTamil: "செவ்வாய்", nameTamilShort: "செ", nameEnglish: "Mars" },
+  { id: "Me", nameTamil: "புதன்", nameTamilShort: "பு", nameEnglish: "Mercury" },
+  { id: "Ju", nameTamil: "குரு", nameTamilShort: "கு", nameEnglish: "Jupiter" },
+  { id: "Ve", nameTamil: "சுக்கிரன்", nameTamilShort: "சு", nameEnglish: "Venus" },
+  { id: "Sa", nameTamil: "சனி", nameTamilShort: "ச", nameEnglish: "Saturn" },
+  { id: "Ra", nameTamil: "ராகு", nameTamilShort: "ரா", nameEnglish: "Rahu" },
+  { id: "Ke", nameTamil: "கேது", nameTamilShort: "கே", nameEnglish: "Ketu" },
+  { id: "La", nameTamil: "லக்கினம்", nameTamilShort: "லக்", nameEnglish: "Lagnam" }
 ];
