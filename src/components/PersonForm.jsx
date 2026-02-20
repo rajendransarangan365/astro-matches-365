@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { STARS, RASIS } from '../data/poruthamData';
-import { User, Star, Moon, BarChart3, ChevronDown, ChevronUp, MapPin, Calendar, Clock, Sparkles } from 'lucide-react';
+import { User, Star, Moon, BarChart3, ChevronDown, ChevronUp, MapPin, Calendar, Clock, Sparkles, Save, Download } from 'lucide-react';
 import ChartInput from './ChartInput';
 import { calculateAstroDetails } from '../utils/astroUtils';
 
@@ -15,7 +15,7 @@ const CITIES = [
     "Dharmapuri", "Kanchipuram", "Tiruppur"
 ];
 
-const PersonForm = ({ title, data, onChange, type }) => {
+const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile, saveStatus }) => {
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [calculating, setCalculating] = useState(false);
 
@@ -52,6 +52,30 @@ const PersonForm = ({ title, data, onChange, type }) => {
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', color: type === 'bride' ? '#f472b6' : '#60a5fa' }}>
                 <User size={20} /> {title}
             </h3>
+
+            {profiles && profiles.length > 0 && (
+                <div style={{ marginTop: '1rem', background: 'rgba(255,255,255,0.05)', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'block' }}>
+                        <Download size={12} style={{ display: 'inline', marginRight: '4px' }} /> விரைவாக சேர்க்க (Quick Add)
+                    </label>
+                    <select
+                        style={{ width: '100%', fontSize: '0.85rem', padding: '0.5rem' }}
+                        onChange={(e) => {
+                            const selectedProfile = profiles.find(p => p._id === e.target.value);
+                            if (selectedProfile) {
+                                onChange({ ...selectedProfile.profileData });
+                            }
+                        }}
+                    >
+                        <option value="">-- சேமிக்கப்பட்டதைத் தேர்ந்தெடுக்கவும் --</option>
+                        {profiles.map(p => (
+                            <option key={p._id} value={p._id}>
+                                {p.profileData.name} {p.profileData.dob ? `(${p.profileData.dob})` : ''} - {p.profileData.birthPlace}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
 
             <div className="form-grid" style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
                 {/* 1. Name */}
@@ -126,15 +150,24 @@ const PersonForm = ({ title, data, onChange, type }) => {
                     </div>
                 </div>
 
-                {/* Calculate Button */}
-                <div style={{ gridColumn: '1 / -1', marginTop: '0.5rem' }}>
+                {/* Calculate and Save Buttons */}
+                <div style={{ gridColumn: '1 / -1', marginTop: '0.5rem', display: 'flex', gap: '1rem' }}>
                     <button
                         onClick={handleCalculate}
                         disabled={calculating}
-                        style={{ background: 'rgba(168, 85, 247, 0.1)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.2)', width: '100%', fontSize: '0.85rem' }}
+                        style={{ flex: 1, background: 'rgba(168, 85, 247, 0.1)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.2)', width: '100%', fontSize: '0.85rem' }}
                     >
-                        {calculating ? 'கணக்கிடப்படுகிறது...' : <><Sparkles size={16} /> ஜாதகம் கணக்கிடு (Calculate Chart)</>}
+                        {calculating ? 'கணக்கிடப்படுகிறது...' : <><Sparkles size={16} /> ஜாதகம் கணக்கிடு</>}
                     </button>
+                    {onSaveProfile && (
+                        <button
+                            onClick={() => onSaveProfile(type, data)}
+                            disabled={saveStatus === 'saving'}
+                            style={{ flex: 1, background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.2)', width: '100%', fontSize: '0.85rem' }}
+                        >
+                            {saveStatus === 'saving' ? 'சேமிக்கிறது...' : <><Save size={16} /> சேமிக்க (Save)</>}
+                        </button>
+                    )}
                 </div>
             </div>
 

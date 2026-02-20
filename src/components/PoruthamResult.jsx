@@ -270,6 +270,7 @@ const PoruthamResult = ({ data }) => {
                                     </div>
                                 </div>
                             </div>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

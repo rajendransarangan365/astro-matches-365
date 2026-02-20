@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PersonForm from './components/PersonForm';
 import PoruthamResult from './components/PoruthamResult';
 import { calculatePorutham } from './utils/poruthamLogic';
@@ -15,6 +15,57 @@ function App() {
   const [groomData, setGroomData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
   const [result, setResult] = useState(null);
   const [saveStatus, setSaveStatus] = useState(null);
+
+  const [savedBrides, setSavedBrides] = useState([]);
+  const [savedGrooms, setSavedGrooms] = useState([]);
+  const [profileSaveStatus, setProfileSaveStatus] = useState({ type: null, status: null });
+
+  const fetchProfiles = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch('/api/profiles', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSavedBrides(data.filter(p => p.type === 'bride'));
+        setSavedGrooms(data.filter(p => p.type === 'groom'));
+      }
+    } catch (err) {
+      console.error("Failed to fetch profiles:", err);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchProfiles();
+  }, [fetchProfiles]);
+
+  const handleSaveProfile = async (type, profileData) => {
+    if (!profileData.name || !profileData.dob) {
+      alert("தயவுசெய்து பெயர் மற்றும் பிறந்த தேதியை நிரப்பவும் (Please fill Name and DOB to save)");
+      return;
+    }
+
+    setProfileSaveStatus({ type, status: 'saving' });
+    try {
+      const response = await fetch('/api/profiles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ type, profileData })
+      });
+
+      if (!response.ok) throw new Error('Failed to save profile');
+      setProfileSaveStatus({ type, status: 'success' });
+      fetchProfiles(); // Refresh the list
+      setTimeout(() => setProfileSaveStatus({ type: null, status: null }), 3000);
+    } catch (err) {
+      alert("புரொஃபைல் சேமிப்பதில் பிழை: " + err.message);
+      setProfileSaveStatus({ type: null, status: null });
+    }
+  };
 
   const handleCalculate = () => {
     if (!brideData.starId || !groomData.starId || !brideData.rasiId || !groomData.rasiId) {
@@ -90,6 +141,9 @@ function App() {
           data={brideData}
           onChange={setBrideData}
           type="bride"
+          profiles={savedBrides}
+          onSaveProfile={handleSaveProfile}
+          saveStatus={profileSaveStatus.type === 'bride' ? profileSaveStatus.status : null}
         />
 
         <div style={{ display: 'flex', justifyContent: 'center', opacity: 0.5 }}>
@@ -101,6 +155,9 @@ function App() {
           data={groomData}
           onChange={setGroomData}
           type="groom"
+          profiles={savedGrooms}
+          onSaveProfile={handleSaveProfile}
+          saveStatus={profileSaveStatus.type === 'groom' ? profileSaveStatus.status : null}
         />
 
         <div style={{ display: 'flex', gap: '1rem' }}>

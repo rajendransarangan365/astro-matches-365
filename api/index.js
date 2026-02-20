@@ -18,10 +18,10 @@ const client = new MongoClient(uri, {
     serverSelectionTimeoutMS: 10000,
 });
 
-let db, usersCollection, matchesCollection;
+let db, usersCollection, matchesCollection, profilesCollection;
 
 async function connectToDb() {
-    if (db) return { usersCollection, matchesCollection };
+    if (db) return { usersCollection, matchesCollection, profilesCollection };
     try {
         console.log("Attempting to connect to MongoDB...");
         await client.connect();
@@ -29,7 +29,8 @@ async function connectToDb() {
         db = client.db("astro365");
         usersCollection = db.collection("users");
         matchesCollection = db.collection("matches");
-        return { usersCollection, matchesCollection };
+        profilesCollection = db.collection("profiles");
+        return { usersCollection, matchesCollection, profilesCollection };
     } catch (error) {
         console.error("MongoDB Connection Error Details:", {
             message: error.message,
@@ -113,6 +114,48 @@ app.get('/api/matches', authenticate, async (req, res) => {
         const { matchesCollection } = await connectToDb();
         const matches = await matchesCollection.find({ userId: new ObjectId(req.user.id) }).sort({ createdAt: -1 }).toArray();
         res.json(matches);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Save Profile
+app.post('/api/profiles', authenticate, async (req, res) => {
+    try {
+        const { profilesCollection } = await connectToDb();
+        const { type, profileData } = req.body;
+
+        if (!type || !profileData) {
+            return res.status(400).json({ message: "Type and profileData are required" });
+        }
+
+        const dataToInsert = {
+            userId: new ObjectId(req.user.id),
+            type, // 'bride' or 'groom'
+            profileData,
+            createdAt: new Date()
+        };
+
+        const result = await profilesCollection.insertOne(dataToInsert);
+        res.status(201).json(result);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Get Profiles
+app.get('/api/profiles', authenticate, async (req, res) => {
+    try {
+        const { profilesCollection } = await connectToDb();
+        const { type } = req.query; // Optional filter by type
+
+        const query = { userId: new ObjectId(req.user.id) };
+        if (type) {
+            query.type = type;
+        }
+
+        const profiles = await profilesCollection.find(query).sort({ createdAt: -1 }).toArray();
+        res.json(profiles);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

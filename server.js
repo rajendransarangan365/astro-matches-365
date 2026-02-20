@@ -23,6 +23,7 @@ async function run() {
         const db = client.db("astro365");
         const usersCollection = db.collection("users");
         const matchesCollection = db.collection("matches");
+        const profilesCollection = db.collection("profiles");
 
         // Signup
         app.post('/api/auth/signup', async (req, res) => {
@@ -92,6 +93,45 @@ async function run() {
             try {
                 const matches = await matchesCollection.find({ userId: new ObjectId(req.user.id) }).sort({ createdAt: -1 }).toArray();
                 res.json(matches);
+            } catch (err) {
+                res.status(500).json({ message: err.message });
+            }
+        });
+
+        // Save Profile
+        app.post('/api/profiles', authenticate, async (req, res) => {
+            try {
+                const { type, profileData } = req.body;
+
+                if (!type || !profileData) {
+                    return res.status(400).json({ message: "Type and profileData are required" });
+                }
+
+                const dataToInsert = {
+                    userId: new ObjectId(req.user.id),
+                    type,
+                    profileData,
+                    createdAt: new Date()
+                };
+
+                const result = await profilesCollection.insertOne(dataToInsert);
+                res.status(201).json(result);
+            } catch (err) {
+                res.status(500).json({ message: err.message });
+            }
+        });
+
+        // Get Profiles
+        app.get('/api/profiles', authenticate, async (req, res) => {
+            try {
+                const { type } = req.query;
+                const query = { userId: new ObjectId(req.user.id) };
+                if (type) {
+                    query.type = type;
+                }
+
+                const profiles = await profilesCollection.find(query).sort({ createdAt: -1 }).toArray();
+                res.json(profiles);
             } catch (err) {
                 res.status(500).json({ message: err.message });
             }
