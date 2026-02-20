@@ -1,50 +1,98 @@
 import { STARS, RASIS, YONI_ENEMIES, PLANET_FRIENDS } from '../data/poruthamData';
 
-const generateLifeSummary = (bride, groom) => {
-    const summary = [];
+// Calculates total malefic dosha points from Lagna, Moon, and Venus
+const calculatePapasamyam = (chart, lagnamId, moonRasiId, venusHouseId) => {
+    if (!chart) return { points: 0, details: [] };
 
-    // Helper to check Vargottama (Planet in same house in Rasi and Navamsam)
-    const checkVargottama = (data) => {
-        const planets = ["சூ", "சந்", "செ", "பு", "கு", "சு", "ச"];
-        const found = [];
-        const rasi = data.rasiChart || {};
-        const nav = data.navamsamChart || {};
+    // Core Malefics
+    const malefics = ['Su', 'Ma', 'Sa', 'Ra', 'Ke', 'சூ', 'செ', 'ச', 'ரா', 'கே'];
+    // Houses that cause dosham (2, 4, 7, 8, 12) + 1st house
+    const doshamHouses = [1, 2, 4, 7, 8, 12];
 
-        planets.forEach(p => {
-            let rHouse = null, nHouse = null;
-            for (let h = 1; h <= 12; h++) {
-                if (rasi[h]?.includes(p)) rHouse = h;
-                if (nav[h]?.includes(p)) nHouse = h;
-            }
-            if (rHouse && rHouse === nHouse) found.push(p);
+    let totalPoints = 0;
+    const details = [];
+
+    const checkFromRef = (refHouseId, refName, weight) => {
+        if (!refHouseId) return;
+        doshamHouses.forEach(dh => {
+            const targetHouse = (refHouseId + dh - 2) % 12 + 1;
+            const planetsInHouse = chart[targetHouse] || [];
+
+            planetsInHouse.forEach(p => {
+                if (malefics.includes(p)) {
+                    let point = weight;
+                    // Mars in 7/8 is usually severe
+                    if ((p === 'Ma' || p === 'செ') && (dh === 7 || dh === 8)) point *= 1.5;
+                    // Saturn dosha is slightly milder
+                    if (p === 'Sa' || p === 'ச') point *= 0.75;
+
+                    totalPoints += point;
+                    details.push(`${refName}க்கு ${dh}-ல் ${p}`);
+                }
+            });
         });
-        return found;
     };
 
-    const bVargo = checkVargottama(bride);
-    const gVargo = checkVargottama(groom);
+    // 1. From Lagna (Weight: 1.0)
+    checkFromRef(lagnamId, "லக்னத்திற்", 1.0);
+    // 2. From Moon (Weight: 0.75 - Mental/Emotional)
+    checkFromRef(moonRasiId, "சந்திரனுங்", 0.75);
+    // 3. From Venus (Weight: 0.5 - Marital Bliss)
+    checkFromRef(venusHouseId, "சுக்கிரனுங்", 0.5);
+
+    return { points: parseFloat(totalPoints.toFixed(2)), details };
+};
+
+const getPlanetHouse = (chart, pIds) => {
+    if (!chart) return null;
+    for (const [houseId, planets] of Object.entries(chart)) {
+        if (planets.some(p => pIds.includes(p))) return parseInt(houseId);
+    }
+    return null;
+};
+
+const analyzeNavamsam7th = (navChart, lagnamId) => {
+    if (!navChart || !lagnamId) return { text: "", isGood: true };
+    const seventhHouse = (lagnamId + 5) % 12 + 1;
+    const planetsIn7th = navChart[seventhHouse] || [];
+
+    const benefics = ['Ju', 'Ve', 'Me', 'கு', 'சு', 'பு'];
+    const malefics = ['Su', 'Ma', 'Sa', 'Ra', 'Ke', 'சூ', 'செ', 'ச', 'ரா', 'கே'];
+
+    const hasBenefic = planetsIn7th.some(p => benefics.includes(p));
+    const hasMalefic = planetsIn7th.some(p => malefics.includes(p));
+
+    if (hasBenefic && !hasMalefic) return { text: "நவாம்சத்தில் 7-ம் வீட்டில் சுப கிரகங்கள் இருப்பதால், திருமண வாழ்க்கை மிகவும் மகிழ்ச்சியாக இருக்கும்.", isGood: true };
+    if (hasMalefic && !hasBenefic) return { text: "நவாம்சத்தில் 7-ம் வீட்டில் பாப கிரகங்கள் இருப்பதால், வாழ்க்கைத் துணையிடம் விட்டுக்கொடுத்து செல்வது அவசியம்.", isGood: false };
+    if (hasBenefic && hasMalefic) return { text: "நவாம்சத்தில் 7-ம் வீட்டில் சுப மற்றும் பாப கிரகங்கள் இணைந்திருப்பதால், திருமணப் பெருவாழ்வு கலவையான பலன்களைத் தரும்.", isGood: true };
+
+    return { text: "நவாம்சத்தில் 7-ம் வீடு வெற்றிடமாக இருப்பதால், பொதுவான திருமண வாழ்க்கை அமையும்.", isGood: true };
+};
+
+const generateLifeSummary = (bride, groom, bridePapasamyam, groomPapasamyam, bNavamsa, gNavamsa) => {
+    const summary = [];
 
     summary.push("### 🌟 ஜாதகப் பலன் (Astrological Life Summary)");
 
-    // 1. General Strength
-    if (bVargo.length > 0 || gVargo.length > 0) {
-        summary.push(`இந்த இணைக்கு கிரக பலம் மிகச் சிறப்பாக உள்ளது. குறிப்பாக ${[...new Set([...bVargo, ...gVargo])].join(", ")} போன்ற கிரகங்கள்வர்க்கோத்தமம் பெற்றுள்ளதால், திருமண வாழ்வு மிகுந்த சுபிட்சமாக இருக்கும்.`);
-    }
-
-    // 2. Relationship Tone
-    if (bride.rasiId === groom.rasiId) {
-        summary.push("ஒரே இராசியில் பிறந்தவர்கள் என்பதால், இருவருக்கும் இடையே மனதளவில் நல்ல புரிதலும், ஒருமித்த கருத்தும் காணப்படும். இது குடும்ப ஒற்றுமைக்கு மிகவும் வலுசேர்க்கும்.");
+    // 1. Dosha Samyam Summary
+    if (groomPapasamyam.points >= bridePapasamyam.points) {
+        summary.push(`**பாபசாம்யம் (Dosha Equivalency):** ஆணின் ஜாதகத்தில் உள்ள பாபப் பலன்கள் (${groomPapasamyam.points}) பெண்ணின் ஜாதகப் பலன்களை (${bridePapasamyam.points}) விட ஈடாகவோ சற்று அதிகமாகவோ இருப்பதால், திருமண தோஷ நிவர்த்தி ஆகிறது. இது மிகவும் நன்று.`);
     } else {
-        summary.push("இருவரது ஜாதகக் கட்டங்களும் ஒன்றையொன்று பூர்த்தி செய்யும் வகையில் அமைந்துள்ளதால், சவாலான நேரங்களில் ஒருவருக்கொருவர் துணையாக நின்று வெற்றி காண்பார்கள்.");
+        summary.push(`**பாபசாம்யம் (Dosha Equivalency):** பெண்ணின் ஜாதகத்தில் உள்ள பாபப் பலன்கள் (${bridePapasamyam.points}) ஆணின் ஜாதகப் பலன்களை (${groomPapasamyam.points}) விட அதிகமாக இருப்பதால், திருமண வாழ்வில் சற்று சிரமங்கள் வரலாம். ஜாதகப் பொருத்தம் முழுமையாக திருப்தி தரவில்லை.`);
     }
 
-    // 3. Prosperity
-    summary.push("பொருளாதார ரீதியாகப் பார்க்கும்போது, பத்தாம் இடத்து அதிபதிகளின் சுபப் பார்வையால் இவர்களுக்குத் திருமணத்திற்குப் பின் அடுக்கடுக்கான முன்னேற்றங்கள் ஏற்படும். வீடு, வாகன யோகங்கள் கைகூடும்.");
+    // 2. Navamsam Analysis
+    if (bNavamsa.text) summary.push(`**பெண் நவாம்சம்:** ${bNavamsa.text}`);
+    if (gNavamsa.text) summary.push(`**ஆண் நவாம்சம்:** ${gNavamsa.text}`);
 
-    // 4. Spiritual / Family
-    summary.push("இந்த இணை ஆன்மீகத்திலும், குடும்பப் பாரம்பரியங்களைக் காப்பாற்றுவதிலும் அதிக ஆர்வம் காட்டுவார்கள். இவர்களுக்குப் பிறக்கும் குழந்தைகள் அறிவும், பண்பும் நிறைந்தவர்களாகத் திகழ்வார்கள்.");
+    // 3. Relationship Tone
+    if (bride.rasiId === groom.rasiId) {
+        summary.push("**மனப்பொருத்தம்:** ஒரே இராசியில் பிறந்தவர்கள் என்பதால், இருவருக்கும் இடையே மனதளவில் நல்ல புரிதலும், ஒருமித்த கருத்தும் காணப்படும்.");
+    } else {
+        summary.push("**மனப்பொருத்தம்:** இருவரது ஜாதகக் கட்டங்களும் ஒன்றையொன்று பூர்த்தி செய்யும் வகையில் அமைந்துள்ளதால், சவாலான நேரங்களில் ஒருவருக்கொருவர் துணையாக நிற்பார்கள்.");
+    }
 
-    summary.push("\n**ஜோதிடரின் முடிவு:** இந்தத் திருமணம் நிச்சயமாக மங்களகரமானதாக இருக்கும். குலதெய்வ வழிபாட்டைத் தொடர்ந்து செய்துவர நன்மைகள் பெருகும்.");
+    summary.push("\n**ஜோதிடரின் முடிவு:** நடப்பு தசா புக்திகளை ஆராய்ந்து, குலதெய்வ வழிபாட்டை மேற்கொண்டால் நன்மைகள் பெருகும்.");
 
     return summary.join("\n\n");
 };
@@ -116,53 +164,31 @@ export const calculatePorutham = (bride, groom) => {
     // 12. Vruksha Porutham
     results.vruksha = { name: "விருட்சப் பொருத்தம்", status: "Match", score: 1 };
 
-    // --- Advanced Analysis (Planets) ---
-    const getPlanetHouse = (chart, pId) => {
-        if (!chart) return null;
-        for (const [houseId, planets] of Object.entries(chart)) {
-            if (planets.includes(pId)) return parseInt(houseId);
-        }
-        return null;
-    };
+    // --- AstroSage Advanced Analysis (Planetary Dosham) ---
+    const bVenus = getPlanetHouse(bride.rasiChart, ['Ve', 'சு']);
+    const gVenus = getPlanetHouse(groom.rasiChart, ['Ve', 'சு']);
+    const bLagna = getPlanetHouse(bride.rasiChart, ['La', 'லக்']) || parseInt(bride.rasiId);
+    const gLagna = getPlanetHouse(groom.rasiChart, ['La', 'லக்']) || parseInt(groom.rasiId);
 
-    const checkChevvaiDosham = (chart, rasiId) => {
-        if (!chart) return { hasDosham: false, details: "" };
-        const lagnamHouse = getPlanetHouse(chart, 'La') || getPlanetHouse(chart, 'லக்');
-        const moonHouse = getPlanetHouse(chart, 'Mo') || getPlanetHouse(chart, 'சந்') || rasiId;
-        const marsHouse = getPlanetHouse(chart, 'Ma') || getPlanetHouse(chart, 'செ');
+    const bDosham = calculatePapasamyam(bride.rasiChart, bLagna, parseInt(bride.rasiId), bVenus);
+    const gDosham = calculatePapasamyam(groom.rasiChart, gLagna, parseInt(groom.rasiId), gVenus);
 
-        if (!marsHouse) return { hasDosham: false, details: "" };
-
-        const doshamHouses = [2, 4, 7, 8, 12];
-        const res = [];
-
-        if (lagnamHouse) {
-            const distFromLa = (marsHouse - lagnamHouse + 12) % 12 || 12;
-            if (doshamHouses.includes(distFromLa)) res.push(`லக்கினத்திற்கு ${distFromLa}-ல் செவ்வாய்`);
-        }
-
-        if (moonHouse) {
-            const distFromMo = (marsHouse - moonHouse + 12) % 12 || 12;
-            if (doshamHouses.includes(distFromMo)) res.push(`சந்திரனுக்கு ${distFromMo}-ல் செவ்வாய்`);
-        }
-
-        return {
-            hasDosham: res.length > 0,
-            details: res.join(", ")
-        };
-    };
-
-    const bDosham = checkChevvaiDosham(bride.rasiChart, parseInt(bride.rasiId));
-    const gDosham = checkChevvaiDosham(groom.rasiChart, parseInt(groom.rasiId));
+    // AstroSage Rule: Groom Dosham must be >= Bride Dosham
+    // Also consider it a match if both are low (< 3 points dosham)
+    const doshamMatch = (gDosham.points >= bDosham.points) || (bDosham.points < 3 && gDosham.points < 3);
 
     const doshamResult = {
         bride: bDosham,
         groom: gDosham,
-        match: bDosham.hasDosham === gDosham.hasDosham ? "Match" : "No Match",
-        recommendation: bDosham.hasDosham === gDosham.hasDosham
-            ? "இருவருக்கும் செவ்வாய் தோஷம் சமமாக உள்ளது."
-            : "செவ்வாய் தோஷம் சமமாக இல்லை. கூடுதல் கவனம் தேவை."
+        match: doshamMatch ? "Match" : "No Match",
+        recommendation: doshamMatch
+            ? "பாபசாம்யம் (Dosha Equivalency) நன்கு பொருந்தியுள்ளது."
+            : "பெண்ணின் ஜாதகப் பாபப் பலன் ஆணின் ஜாதகத்தை விட அதிகம். இது திருமணத்திற்கு உகந்ததல்ல."
     };
+
+    // Navamsam
+    const bNavamsa = analyzeNavamsam7th(bride.navamsamChart, bLagna);
+    const gNavamsa = analyzeNavamsam7th(groom.navamsamChart, gLagna);
 
     // Final Recommendation
     const importantFields = ['rasi', 'rasiAthipathi', 'rajju', 'mahendra', 'yoni'];
@@ -175,8 +201,8 @@ export const calculatePorutham = (bride, groom) => {
     if (results.rajju.status === "No Match") {
         recommendation = "ரஜ்ஜிப் பொருத்தம் சரியாக இல்லை. இது திருமணத்திற்கு உகந்ததல்ல.";
         canMarry = false;
-    } else if (doshamResult.match === "No Match" && (bDosham.hasDosham || gDosham.hasDosham)) {
-        recommendation = "செவ்வாய் தோஷம் சரியாக பொருந்தவில்லை. நிபுணரிடம் ஆலோசனை பெறவும்.";
+    } else if (doshamResult.match === "No Match") {
+        recommendation = "பெண்ணின் ஜாதகத்தில் பாப கிரகப் பலன் அதிகமாக உள்ளது, எனவே பாபசாம்யம் இல்லை.";
         canMarry = false;
     } else if (importantMatches >= 3) {
         recommendation = "நல்ல பொருத்தம் உண்டு. தாராளமாகத் திருமணம் செய்யலாம்.";
@@ -199,16 +225,21 @@ export const calculatePorutham = (bride, groom) => {
     else cons.push("யோனிப் பொருத்தம் இல்லை - கருத்து வேறுபாடுகள் ஏற்படலாம்.");
 
     if (doshamResult.match === "Match") {
-        if (bDosham.hasDosham) pros.push("இருவருக்கும் செவ்வாய் தோஷம் இருப்பதால் தோஷ நிவர்த்தி ஆகிறது.");
-        else pros.push("இருவருக்கும் செவ்வாய் தோஷம் இல்லை. இது மிகவும் நன்று.");
+        pros.push("பாபசாம்யம் (Dosha Equivalency) உள்ளது. தடைகள் நீங்கி நன்மைகள் நடக்கும்.");
     } else {
-        cons.push("செவ்வாய் தோஷம் சமமாக இல்லை. இது ஆரோக்கியம் மற்றும் ஆயுளைப் பாதிக்கும்.");
+        cons.push("பெண்ணின் ஜாதகப் பாபப் பலன் ஆணின் ஜாதகத்தை விட அதிகம். இது ஆயுளையும், ஆரோக்கியத்தையும் பாதிக்கும்.");
+    }
+
+    if (!bNavamsa.isGood || !gNavamsa.isGood) {
+        cons.push("நவாம்சத்தில் 7-ம் வீட்டில் பாப கிரகங்களின் தாக்கம் உள்ளது.");
+    } else {
+        pros.push("நவாம்ச பலம் (D9 Chart) சிறப்பாக உள்ளது.");
     }
 
     const totalScore = Object.values(results).reduce((acc, curr) => acc + curr.score, 0);
     const percentage = Math.round((totalScore / 12) * 100);
 
-    const lifeSummary = generateLifeSummary(bride, groom);
+    const lifeSummary = generateLifeSummary(bride, groom, bDosham, gDosham, bNavamsa, gNavamsa);
 
     const summaryReport = {
         percentage,

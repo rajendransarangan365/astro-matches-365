@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { CheckCircle2, XCircle, AlertCircle, Heart, ChevronDown, ChevronUp, Sparkles, Download, Share2 } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Heart, ChevronDown, ChevronUp, Sparkles, Download, Share2, Scale } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -230,28 +230,43 @@ const PoruthamResult = ({ data }) => {
 
                             {doshamResult && (
                                 <div className="glass-card" style={{ marginTop: '1rem' }}>
-                                    <h3 style={{ color: '#fbbf24', marginBottom: '1rem' }}>செவ்வாய் தோஷம் (Chevvai Dosham)</h3>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.85rem' }}>
-                                        <div style={{ padding: '0.5rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)' }}>
-                                            <div style={{ color: '#f472b6', fontWeight: 'bold' }}>பெண்:</div>
-                                            {doshamResult.bride.hasDosham ? (
-                                                <div style={{ color: '#f87171' }}>தோஷம் உண்டு: {doshamResult.bride.details}</div>
+                                    <h3 style={{ color: '#fbbf24', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Scale size={20} /> பாபசாம்யம் (Dosha Samyam - Planetary Match)
+                                    </h3>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem', fontSize: '0.85rem' }}>
+                                        <div style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)', borderLeft: '3px solid #f472b6' }}>
+                                            <div style={{ color: '#f472b6', fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.5rem' }}>பெண் (Bride)</div>
+                                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '0.25rem' }}>
+                                                {doshamResult.bride.points} <span style={{ fontSize: '0.75rem', fontWeight: 'normal', opacity: 0.7 }}>புள்ளிகள் (Points)</span>
+                                            </div>
+                                            {doshamResult.bride.details.length > 0 ? (
+                                                <ul style={{ paddingLeft: '1rem', margin: 0, color: '#f87171', opacity: 0.9 }}>
+                                                    {doshamResult.bride.details.map((d, i) => <li key={i}>{d}</li>)}
+                                                </ul>
                                             ) : (
-                                                <div style={{ color: '#4ade80' }}>தோஷம் இல்லை</div>
+                                                <div style={{ color: '#4ade80' }}>குறிப்பிடத்தக்க தோஷம் இல்லை</div>
                                             )}
                                         </div>
-                                        <div style={{ padding: '0.5rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)' }}>
-                                            <div style={{ color: '#60a5fa', fontWeight: 'bold' }}>ஆண்:</div>
-                                            {doshamResult.groom.hasDosham ? (
-                                                <div style={{ color: '#f87171' }}>தோஷம் உண்டு: {doshamResult.groom.details}</div>
+                                        <div style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)', borderLeft: '3px solid #60a5fa' }}>
+                                            <div style={{ color: '#60a5fa', fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.5rem' }}>ஆண் (Groom)</div>
+                                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '0.25rem' }}>
+                                                {doshamResult.groom.points} <span style={{ fontSize: '0.75rem', fontWeight: 'normal', opacity: 0.7 }}>புள்ளிகள் (Points)</span>
+                                            </div>
+                                            {doshamResult.groom.details.length > 0 ? (
+                                                <ul style={{ paddingLeft: '1rem', margin: 0, color: '#f87171', opacity: 0.9 }}>
+                                                    {doshamResult.groom.details.map((d, i) => <li key={i}>{d}</li>)}
+                                                </ul>
                                             ) : (
-                                                <div style={{ color: '#4ade80' }}>தோஷம் இல்லை</div>
+                                                <div style={{ color: '#4ade80' }}>குறிப்பிடத்தக்க தோஷம் இல்லை</div>
                                             )}
                                         </div>
                                     </div>
-                                    <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: doshamResult.match === 'Match' ? '#4ade80' : '#f87171', fontWeight: 'bold' }}>
-                                        முடிவு: {doshamResult.recommendation}
-                                    </p>
+                                    <div style={{ marginTop: '1rem', padding: '0.75rem', borderRadius: '0.5rem', background: doshamResult.match === 'Match' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(248, 113, 113, 0.1)' }}>
+                                        <p style={{ margin: 0, fontSize: '0.9rem', color: doshamResult.match === 'Match' ? '#4ade80' : '#f87171', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            {doshamResult.match === 'Match' ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                                            முடிவு: {doshamResult.recommendation}
+                                        </p>
+                                    </div>
                                 </div>
                             )}
 
