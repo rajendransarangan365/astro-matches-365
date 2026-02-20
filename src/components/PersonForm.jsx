@@ -19,6 +19,14 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [calculating, setCalculating] = useState(false);
 
+    // Get selected star to filter Rasi dropdown
+    const selectedStar = STARS.find(s => s.id === data.starId);
+
+    // Filter RASIS based on the selected star's mapping
+    const availableRasis = selectedStar
+        ? RASIS.filter(r => selectedStar.rasiMapping.some(rm => rm.rasiId === r.id))
+        : RASIS;
+
     const handleCalculate = async () => {
         if (!data.dob || !data.birthTime || !data.birthPlace) {
             alert("தயவுசெய்து பிறந்த தேதி, நேரம் மற்றும் இடத்தை உள்ளிடவும்.");
@@ -180,9 +188,14 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
                             onChange={(e) => onChange({ ...data, rasiId: parseInt(e.target.value) || '' })}
                         >
                             <option value="">தேர்ந்தெடுக்கவும்</option>
-                            {RASIS.map(r => (
-                                <option key={r.id} value={r.id}>{r.nameTamil} ({r.nameEnglish})</option>
-                            ))}
+                            {availableRasis.map(r => {
+                                // Find exactly which padas belong to this Rasi
+                                const padas = selectedStar ? selectedStar.rasiMapping.find(rm => rm.rasiId === r.id)?.padas : "";
+                                const padaText = padas ? ` (பாதம் ${padas})` : "";
+                                return (
+                                    <option key={r.id} value={r.id}>{r.nameTamil}{padaText}</option>
+                                );
+                            })}
                         </select>
                     </div>
 
@@ -190,11 +203,26 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
                         <label><Star size={16} /> நட்சத்திரம் (Star)</label>
                         <select
                             value={data.starId}
-                            onChange={(e) => onChange({ ...data, starId: parseInt(e.target.value) || '' })}
+                            onChange={(e) => {
+                                const starId = parseInt(e.target.value) || '';
+                                const newStar = STARS.find(s => s.id === starId);
+
+                                // Auto-select Rasi if the star perfectly maps to exactly one Rasi
+                                let newRasiId = data.rasiId;
+                                if (newStar) {
+                                    if (newStar.rasiMapping.length === 1) {
+                                        newRasiId = newStar.rasiMapping[0].rasiId; // Auto-select
+                                    } else if (!newStar.rasiMapping.some(rm => rm.rasiId === data.rasiId)) {
+                                        newRasiId = ''; // Clear Rasi if current Rasi is invalid for new Star
+                                    }
+                                }
+
+                                onChange({ ...data, starId, rasiId: newRasiId });
+                            }}
                         >
                             <option value="">தேர்ந்தெடுக்கவும்</option>
                             {STARS.map(s => (
-                                <option key={s.id} value={s.id}>{s.nameTamil} ({s.nameEnglish})</option>
+                                <option key={s.id} value={s.id}>{s.nameTamil}</option>
                             ))}
                         </select>
                     </div>

@@ -144,12 +144,12 @@ export const calculatePorutham = (bride, groom) => {
 
     // 2. Gana Porutham
     let ganaScore = 0;
-    if (bStar.gana === gStar.gana) ganaScore = 3;
-    else if (bStar.gana === "Deva" && gStar.gana === "Manushya") ganaScore = 3;
-    else if (bStar.gana === "Manushya" && gStar.gana === "Deva") ganaScore = 2;
+    if (bStar.gana === gStar.gana) ganaScore = 1;
+    else if (bStar.gana === "Deva" && gStar.gana === "Manushya") ganaScore = 1;
+    else if (bStar.gana === "Manushya" && gStar.gana === "Deva") ganaScore = 0.5;
     else if (gStar.gana === "Rakshasa") ganaScore = 0;
-    else ganaScore = 1;
-    results.gana = { name: "கணப் பொருத்தம்", status: ganaScore >= 2 ? "Match" : "No Match", score: ganaScore };
+    else ganaScore = 0;
+    results.gana = { name: "கணப் பொருத்தம்", status: ganaScore >= 0.5 ? "Match" : "No Match", score: Math.ceil(ganaScore) };
 
     // 3. Mahendra Porutham (Important)
     const distMahendra = (gStar.id - bStar.id + 27);
@@ -178,7 +178,7 @@ export const calculatePorutham = (bride, groom) => {
 
     // 8. Vasya Porutham
     // Simplified: Match if Rasi are compatible or specific pairs
-    results.vasya = { name: "வசியப் பொருத்தம்", status: "Neutral", score: 0.5 };
+    results.vasya = { name: "வசியப் பொருத்தம்", status: "Neutral", score: 0 };
 
     // 9. Rajju Porutham (MOST IMPORTANT)
     const rajjuGood = bStar.rajju !== gStar.rajju;
@@ -283,7 +283,9 @@ export const calculatePorutham = (bride, groom) => {
     }
 
     const totalScore = Object.values(results).reduce((acc, curr) => acc + curr.score, 0);
-    let basePercentage = (totalScore / 12) * 100;
+    const finalScore = Math.min(12, totalScore);
+
+    let basePercentage = (finalScore / 12) * 100;
 
     // Apply Chart-based Penalties/Bonuses
     if (hasCharts) {
@@ -314,7 +316,7 @@ export const calculatePorutham = (bride, groom) => {
 
     const summaryReport = {
         percentage,
-        totalScore,
+        totalScore: finalScore,
         pros,
         cons,
         lifeSummary,

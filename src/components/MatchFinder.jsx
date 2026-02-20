@@ -15,6 +15,11 @@ const MatchFinder = () => {
     const [expandedRow, setExpandedRow] = useState(null); // Tracks which result card is opened
     const tableRef = useRef(null);
 
+    const selectedStarObj = STARS.find(s => s.id === parseInt(myStar));
+    const availableRasis = selectedStarObj
+        ? RASIS.filter(r => selectedStarObj.rasiMapping.some(rm => rm.rasiId === r.id))
+        : RASIS;
+
     const handleDownloadPDF = async () => {
         setIsDownloading(true);
         try {
@@ -96,9 +101,12 @@ const MatchFinder = () => {
                 rasiId: parseInt(myRasi)
             };
 
-            // Loop through all 27 stars and 12 rasis (324 combinations)
+            // Loop through all 27 stars but ONLY their valid Rasis based on Padas
             STARS.forEach(targetStar => {
-                RASIS.forEach(targetRasi => {
+                targetStar.rasiMapping.forEach(mapping => {
+                    const targetRasi = RASIS.find(r => r.id === mapping.rasiId);
+                    if (!targetRasi) return;
+
                     const targetProfile = {
                         starId: targetStar.id,
                         rasiId: targetRasi.id
@@ -121,7 +129,8 @@ const MatchFinder = () => {
                             percentage: matchResult.summaryReport?.percentage || 0,
                             totalScore: matchResult.summaryReport?.totalScore || 0, // Out of 12
                             importantScore: matchResult.score, // 0-5
-                            details: matchResult.results
+                            details: matchResult.results,
+                            padas: mapping.padas // Store the specific padas for display
                         });
                     }
                 });
@@ -134,7 +143,7 @@ const MatchFinder = () => {
                 return b.percentage - a.percentage;
             });
 
-            // Keep only top 100 matches that have at least a passable score (e.g., >= 6/12)
+            // Keep only top matches that have at least a passable score (e.g., >= 6/12)
             const goodMatches = matches.filter(m => m.totalScore >= 6).slice(0, 100);
 
             setResults(goodMatches);
@@ -171,6 +180,34 @@ const MatchFinder = () => {
 
                 <div>
                     <label style={{ display: 'block', marginBottom: '0.5rem', color: searchType === 'bride' ? '#f472b6' : '#60a5fa', fontWeight: 'bold' }}>
+                        <Star size={16} style={{ display: 'inline', marginRight: '4px' }} /> உங்கள் நட்சத்திரம் (Your Star)
+                    </label>
+                    <select
+                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)', color: 'white' }}
+                        value={myStar}
+                        onChange={(e) => {
+                            const newStarId = e.target.value;
+                            setMyStar(newStarId);
+                            // Auto reset/select Rasi based on new star
+                            const newStarObj = STARS.find(s => s.id === parseInt(newStarId));
+                            if (newStarObj) {
+                                if (newStarObj.rasiMapping.length === 1) {
+                                    setMyRasi(newStarObj.rasiMapping[0].rasiId.toString());
+                                } else if (!newStarObj.rasiMapping.some(rm => rm.rasiId === parseInt(myRasi))) {
+                                    setMyRasi('');
+                                }
+                            }
+                        }}
+                    >
+                        <option value="" style={{ color: 'black' }}>-- தேர்ந்தெடுக்கவும் --</option>
+                        {STARS.map(s => (
+                            <option key={s.id} value={s.id} style={{ color: 'black' }}>{s.nameTamil}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: searchType === 'bride' ? '#f472b6' : '#60a5fa', fontWeight: 'bold' }}>
                         <Moon size={16} style={{ display: 'inline', marginRight: '4px' }} /> உங்கள் இராசி (Your Rasi)
                     </label>
                     <select
@@ -179,25 +216,13 @@ const MatchFinder = () => {
                         onChange={(e) => setMyRasi(e.target.value)}
                     >
                         <option value="" style={{ color: 'black' }}>-- தேர்ந்தெடுக்கவும் --</option>
-                        {RASIS.map(r => (
-                            <option key={r.id} value={r.id} style={{ color: 'black' }}>{r.nameTamil} ({r.nameEnglish})</option>
-                        ))}
-                    </select>
-                </div>
-
-                <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: searchType === 'bride' ? '#f472b6' : '#60a5fa', fontWeight: 'bold' }}>
-                        <Star size={16} style={{ display: 'inline', marginRight: '4px' }} /> உங்கள் நட்சத்திரம் (Your Star)
-                    </label>
-                    <select
-                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)', color: 'white' }}
-                        value={myStar}
-                        onChange={(e) => setMyStar(e.target.value)}
-                    >
-                        <option value="" style={{ color: 'black' }}>-- தேர்ந்தெடுக்கவும் --</option>
-                        {STARS.map(s => (
-                            <option key={s.id} value={s.id} style={{ color: 'black' }}>{s.nameTamil} ({s.nameEnglish})</option>
-                        ))}
+                        {availableRasis.map(r => {
+                            const padas = selectedStarObj ? selectedStarObj.rasiMapping.find(rm => rm.rasiId === r.id)?.padas : "";
+                            const padaText = padas ? ` (பாதம் ${padas})` : "";
+                            return (
+                                <option key={r.id} value={r.id} style={{ color: 'black' }}>{r.nameTamil}{padaText}</option>
+                            );
+                        })}
                     </select>
                 </div>
 
@@ -283,7 +308,7 @@ const MatchFinder = () => {
                                             </div>
                                             <div>
                                                 <div style={{ fontWeight: 'bold', fontSize: '1.05rem', color: searchType === 'bride' ? '#60a5fa' : '#f472b6' }}>
-                                                    {res.rasi.nameTamil} <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 'normal' }}>- {res.star.nameTamil}</span>
+                                                    {res.rasi.nameTamil} <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 'normal' }}>- {res.star.nameTamil} (பாதம் {res.padas})</span>
                                                 </div>
                                             </div>
                                         </div>
