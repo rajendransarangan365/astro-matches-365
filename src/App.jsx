@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import PersonForm from './components/PersonForm';
 import PoruthamResult from './components/PoruthamResult';
-import { calculatePorutham } from './utils/poruthamLogic';
-import { Heart, Sparkles, LogOut, Save, History, CheckCircle2 } from 'lucide-react';
+import { Heart, Sparkles, LogOut, Save, CheckCircle2 } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
+
+import { useProfiles } from './hooks/useProfiles';
+import { usePorutham } from './hooks/usePorutham';
 
 function App() {
   const { user, token, logout, isAuthenticated, loading } = useAuth();
@@ -13,101 +15,9 @@ function App() {
 
   const [brideData, setBrideData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
   const [groomData, setGroomData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
-  const [result, setResult] = useState(null);
-  const [saveStatus, setSaveStatus] = useState(null);
 
-  const [savedBrides, setSavedBrides] = useState([]);
-  const [savedGrooms, setSavedGrooms] = useState([]);
-  const [profileSaveStatus, setProfileSaveStatus] = useState({ type: null, status: null });
-
-  const fetchProfiles = useCallback(async () => {
-    if (!token) return;
-    try {
-      const response = await fetch('/api/profiles', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setSavedBrides(data.filter(p => p.type === 'bride'));
-        setSavedGrooms(data.filter(p => p.type === 'groom'));
-      }
-    } catch (err) {
-      console.error("Failed to fetch profiles:", err);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    fetchProfiles();
-  }, [fetchProfiles]);
-
-  const handleSaveProfile = async (type, profileData) => {
-    if (!profileData.name || !profileData.dob) {
-      alert("தயவுசெய்து பெயர் மற்றும் பிறந்த தேதியை நிரப்பவும் (Please fill Name and DOB to save)");
-      return;
-    }
-
-    setProfileSaveStatus({ type, status: 'saving' });
-    try {
-      const response = await fetch('/api/profiles', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ type, profileData })
-      });
-
-      if (!response.ok) throw new Error('Failed to save profile');
-      setProfileSaveStatus({ type, status: 'success' });
-      fetchProfiles(); // Refresh the list
-      setTimeout(() => setProfileSaveStatus({ type: null, status: null }), 3000);
-    } catch (err) {
-      alert("புரொஃபைல் சேமிப்பதில் பிழை: " + err.message);
-      setProfileSaveStatus({ type: null, status: null });
-    }
-  };
-
-  const handleCalculate = () => {
-    if (!brideData.starId || !groomData.starId || !brideData.rasiId || !groomData.rasiId) {
-      alert("தயவுசெய்து அனைத்து விவரங்களையும் பூர்த்தி செய்யவும் (Please fill all details)");
-      return;
-    }
-    const matchResult = calculatePorutham(brideData, groomData);
-    setResult({ ...matchResult, bride: brideData, groom: groomData });
-
-    // Smooth scroll to results
-    setTimeout(() => {
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }, 100);
-  };
-
-  const handleSaveMatch = async () => {
-    if (!result) return;
-    setSaveStatus('saving');
-    try {
-      const response = await fetch('/api/matches', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          brideName: brideData.name,
-          groomName: groomData.name,
-          brideData,
-          groomData,
-          result
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to save');
-      setSaveStatus('success');
-      setTimeout(() => setSaveStatus(null), 3000);
-    } catch (err) {
-      alert("சேமிப்பதில் பிழை: " + err.message);
-      setSaveStatus(null);
-    }
-  };
+  const { savedBrides, savedGrooms, profileSaveStatus, handleSaveProfile } = useProfiles(token);
+  const { result, saveStatus, handleCalculate, handleSaveMatch } = usePorutham(token, brideData, groomData);
 
   if (loading) return <div className="container">Loading...</div>;
 
