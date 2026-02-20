@@ -68,7 +68,7 @@ export const calculateAstroDetails = async (dob, time, place) => {
         // Rasi index in RASIS array (1-12)
         // Note: Library might return names, we need to find our IDs
 
-        const rasiId = RASIS_TAMIL_NAMES.indexOf(moonSign.rashi) + 1 || 1;
+        const rasiId = RASI_TAMIL_NAMES.indexOf(moonSign.rashi) + 1 || 1;
         const starId = STAR_TAMIL_NAMES.indexOf(panchang.nakshatra) + 1 || 1;
 
         // 5. Generate Charts
