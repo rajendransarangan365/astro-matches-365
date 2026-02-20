@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { STARS, RASIS } from '../data/poruthamData';
 import { calculatePorutham } from '../utils/poruthamLogic';
-import { Search, Star, User, Moon, CheckCircle2, XCircle, TrendingUp, Filter } from 'lucide-react';
+import { Search, Star, User, Moon, CheckCircle2, XCircle, TrendingUp, Filter, Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 const MatchFinder = () => {
     const [searchType, setSearchType] = useState('bride'); // 'bride' looking for groom, or 'groom' looking for bride
@@ -9,6 +11,45 @@ const MatchFinder = () => {
     const [myRasi, setMyRasi] = useState('');
     const [results, setResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const tableRef = useRef(null);
+
+    const handleDownloadPDF = async () => {
+        if (!tableRef.current) return;
+        setIsDownloading(true);
+        try {
+            const canvas = await html2canvas(tableRef.current, { scale: 2, useCORS: true, backgroundColor: '#1a1a1a' });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            // Add title
+            pdf.setFontSize(16);
+            pdf.text("Match Finder Results", 10, 10);
+
+            // Add image
+            let yPosition = 20;
+
+            // If the table is very long, it might overflow a single page. 
+            // We just render whatever fits or let it bleed if it's super long.
+            pdf.addImage(imgData, 'PNG', 0, yPosition, pdfWidth, pdfHeight);
+
+            const selectedStar = STARS.find(s => s.id === parseInt(myStar))?.nameEnglish || 'Star';
+            const selectedRasi = RASIS.find(r => r.id === parseInt(myRasi))?.nameEnglish || 'Rasi';
+
+            const fileName = searchType === 'bride'
+                ? `Matches_for_Bride_${selectedStar}_${selectedRasi}.pdf`
+                : `Matches_for_Groom_${selectedStar}_${selectedRasi}.pdf`;
+
+            pdf.save(fileName);
+        } catch (error) {
+            console.error("PDF Generation Error:", error);
+            alert("PDF பதிவிறக்குவதில் பிழை ஏற்பட்டது.");
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     const handleSearch = () => {
         if (!myStar || !myRasi) {
@@ -145,10 +186,30 @@ const MatchFinder = () => {
                         <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <TrendingUp size={20} color="#4ade80" /> சிறந்த பொருத்தங்கள் (Top Matches)
                         </h3>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{results.length} முடிவுகள்</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{results.length} முடிவுகள்</span>
+                            <button
+                                onClick={handleDownloadPDF}
+                                disabled={isDownloading}
+                                style={{
+                                    background: 'rgba(56, 189, 248, 0.1)',
+                                    color: '#38bdf8',
+                                    border: '1px solid rgba(56, 189, 248, 0.2)',
+                                    padding: '0.5rem 1rem',
+                                    fontSize: '0.85rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    cursor: 'pointer',
+                                    borderRadius: '0.5rem'
+                                }}
+                            >
+                                {isDownloading ? 'தயாராகிறது...' : <><Download size={16} /> PDF பதிவிறக்கு</>}
+                            </button>
+                        </div>
                     </div>
 
-                    <div style={{ overflowX: 'auto', borderRadius: '0.5rem', border: '1px solid var(--glass-border)' }}>
+                    <div ref={tableRef} style={{ overflowX: 'auto', borderRadius: '0.5rem', border: '1px solid var(--glass-border)', padding: '1rem', background: '#111827' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
                             <thead>
                                 <tr style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--glass-border)' }}>
