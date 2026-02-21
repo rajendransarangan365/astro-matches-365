@@ -22,6 +22,7 @@ export const protect = async (req, res, next) => {
             }
 
             const { password, ...userWithoutPassword } = user;
+            userWithoutPassword.id = user._id.toString();
             req.user = userWithoutPassword;
 
             next();
