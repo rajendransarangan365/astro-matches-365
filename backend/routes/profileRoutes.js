@@ -1,10 +1,10 @@
 import express from 'express';
 import { saveProfile, getProfiles } from '../controllers/profileController.js';
-import { authenticate } from '../middleware/authMiddleware.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/', authenticate, saveProfile);
-router.get('/', authenticate, getProfiles);
+router.post('/', protect, saveProfile);
+router.get('/', protect, getProfiles);
 
 export default router;

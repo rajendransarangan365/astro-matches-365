@@ -1,7 +1,8 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import jwt from 'jsonwebtoken';
+import { connectToDb } from '../config/db.js';
+import { ObjectId } from 'mongodb';
 
-const protect = async (req, res, next) => {
+export const protect = async (req, res, next) => {
     let token;
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -12,19 +13,23 @@ const protect = async (req, res, next) => {
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET || 'tamil_marriage_matching_secret_key_pro_2026');
 
-            // Get user from the token
-            req.user = await User.findById(decoded.id).select('-password');
+            // Get user from the token using native MongoDB
+            const { usersCollection } = await connectToDb();
+            const user = await usersCollection.findOne({ _id: new ObjectId(decoded.id) });
+
+            if (!user) {
+                return res.status(401).json({ message: 'அங்கீகரிக்கப்படவில்லை, பயனர் இல்லை' });
+            }
+
+            const { password, ...userWithoutPassword } = user;
+            req.user = userWithoutPassword;
 
             next();
         } catch (error) {
             console.error('Auth Middleware Error:', error);
             res.status(401).json({ message: 'அங்கீகரிக்கப்படவில்லை, டோக்கன் தவறானது' });
         }
-    }
-
-    if (!token) {
+    } else {
         res.status(401).json({ message: 'அங்கீகரிக்கப்படவில்லை, டோக்கன் இல்லை' });
     }
 };
-
-module.exports = { protect };
