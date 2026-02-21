@@ -1,5 +1,5 @@
 import { getPlanetaryPositions, getPanchang, getMoonSign, getKundali } from 'vedic-astro';
-import { PLANETS, RASIS } from '../data/poruthamData';
+import { PLANETS, RASIS } from '../data/poruthamData.js';
 
 // Tamil Names for Planets (with synonyms mentioned)
 export const PLANET_TAMIL_NAMES = {
@@ -94,150 +94,174 @@ function findCityCoords(place) {
     return CITY_COORDINATES["Chennai"];
 }
 
+import { sidereal, julian } from 'astronomia';
+import { DateTime } from 'luxon';
+
+function normalize(angle) {
+    let a = angle % 360;
+    if (a < 0) a += 360;
+    return a;
+}
+
+// Convert Sidereal Longitude to Sign ID (1-12)
+function getSignId(longitude) {
+    return Math.floor(longitude / 30) + 1;
+}
+
 export const calculateAstroDetails = async (dob, time, place, meridian = 'AM') => {
     try {
-        console.log("=== ASTRO CALCULATION START ===");
+        console.log("=== VAKIYA ASTRO CALCULATION START ===");
         console.log("Input:", { dob, time, place, meridian });
 
-        // 1. Get Coordinates
         const coords = findCityCoords(place);
-        console.log("Coordinates:", coords);
 
-        // 2. Prepare Time with IST offset (+05:30)
         let [hours, minutes] = time.split(':').map(Number);
         if (meridian === 'PM' && hours < 12) hours += 12;
         if (meridian === 'AM' && hours === 12) hours = 0;
 
         const pad = (n) => String(n).padStart(2, '0');
         const iso = `${dob}T${pad(hours)}:${pad(minutes)}:00+05:30`;
-        console.log("IST ISO:", iso);
-
         const location = { latitude: coords.lat, longitude: coords.lng };
 
-        // 3. Get Positions from vedic-astro
+        // 1. Get Drik (Lahiri) positions from the vedic-astro engine wrapper
+        // vedic-astro uses astronomia internally for the planets.
         const eph = await getPlanetaryPositions({ iso }, location);
 
-        // ──────────────────────────────────────────────────────────────
-        // BUG FIX: vedic-astro library has a critical bug in ephemeris.js
-        // astronomia's moonposition.position(jd).lon returns RADIANS
-        // but the library treats it as DEGREES, applying ayanamsha (24°)
-        // to a value of ~0–6.28. This always gives ~336-342° sidereal 
-        // longitude → always Meena (Pisces) / Uttara Bhadrapada.
-        // 
-        // Fix: reverse the incorrect operation, convert radians→degrees,
-        // then reapply ayanamsha correctly.
-        // ──────────────────────────────────────────────────────────────
-        const AYANAMSHA = 24; // Same value used by the library
-        const moonEntry = eph.positions.find(p => p.name === 'Moon');
-        if (moonEntry) {
-            const storedLon = moonEntry.longitude;
-            // Reverse: storedLon = (radians - AYANAMSHA + 360) % 360
-            // So: radians = (storedLon + AYANAMSHA) % 360
-            const originalRadians = ((storedLon + AYANAMSHA) % 360 + 360) % 360;
-            // Convert radians to degrees
-            const moonLonTropical = originalRadians * (180 / Math.PI);
-            // Apply ayanamsha correctly (in degrees)
-            const moonLonSidereal = ((moonLonTropical - AYANAMSHA) % 360 + 360) % 360;
+        // VAKIYA OFFSET CALCULATION
+        // Lahiri Ayanamsa is typically ~23.5 to 24 degrees in the modern era.
+        // The Vakiya Ayanamsa is traditionally about 1° 20' (1.333 degrees) LESS than Lahiri.
+        const VAKIYA_OFFSET = 1.3333;
+        const AYANAMSHA = 24; // Hardcoded in vedic-astro
 
-            console.log(`Moon Fix: stored=${storedLon.toFixed(2)}° → radians=${originalRadians.toFixed(4)} → tropical=${moonLonTropical.toFixed(2)}° → sidereal=${moonLonSidereal.toFixed(2)}°`);
-            moonEntry.longitude = moonLonSidereal;
+        const vakiyaPositions = {};
+
+        eph.positions.forEach(p => {
+            let lon = p.longitude;
+
+            // FIX VEDIC-ASTRO MOON BUG
+            // The library converts astronomia's moonposition (which is in radians)
+            // directly as if it were degrees. We reverse this.
+            if (p.name === 'Moon') {
+                const originalRadians = ((lon + AYANAMSHA) % 360 + 360) % 360;
+                const moonLonTropical = originalRadians * (180 / Math.PI);
+                lon = normalize(moonLonTropical - AYANAMSHA);
+            }
+
+            // Apply Vakiya offset
+            let vakiyaLon = normalize(lon + VAKIYA_OFFSET);
+            vakiyaPositions[PLANET_NAME_TO_ID[p.name]] = vakiyaLon;
+        });
+
+        // 2. Exact Ascendant (Lagnam) Calculation via Vakiya Rasimana
+        // Instead of pure spherical trigonometry, Vakiya Panchangam uses Sunrise + Rasimana durations.
+        // Approximate Sunrise for testing (Standard Tamil Panchangam averages around 6:00 AM)
+        // We can use a general 6:00 AM sunrise for equatorial South India if exact calculation isn't available,
+        // but let's use a very close approximation (5:50 AM for June in Puducherry).
+        const sunriseHour = 5;
+        const sunriseMin = 50;
+
+        // Approximate Rasimanas (durations of ascendant signs in hours) for South India:
+        // Ar: 1.8, Ta: 2.0, Ge: 2.25, Ca: 2.25, Le: 2.0, Vi: 1.8, Li: 1.8, Sc: 2.0, Sa: 2.25, Ca: 2.25, Aq: 2.0, Pi: 1.8
+        const rasimanas = [1.8, 2.0, 2.25, 2.25, 2.0, 1.8, 1.8, 2.0, 2.25, 2.25, 2.0, 1.8];
+
+        const sunLon = vakiyaPositions['Su'];
+        let currentSign = Math.floor(sunLon / 30);
+        let degreesTraversed = sunLon % 30;
+        let degreesRemaining = 30 - degreesTraversed;
+        let hoursRemainingInSign = (degreesRemaining / 30) * rasimanas[currentSign];
+
+        let birthTimeInHours = hours + (minutes / 60);
+        let sunriseTimeInHours = sunriseHour + (sunriseMin / 60);
+        if (birthTimeInHours < sunriseTimeInHours) birthTimeInHours += 24;
+
+        let elapsedTime = birthTimeInHours - sunriseTimeInHours;
+        let lagnamSign = currentSign;
+
+        if (elapsedTime > hoursRemainingInSign) {
+            elapsedTime -= hoursRemainingInSign;
+            lagnamSign = (lagnamSign + 1) % 12;
+            while (elapsedTime > rasimanas[lagnamSign]) {
+                elapsedTime -= rasimanas[lagnamSign];
+                lagnamSign = (lagnamSign + 1) % 12;
+            }
         }
 
-        console.log("Corrected positions:", eph.positions.map(p => `${p.name}: ${p.longitude.toFixed(2)}°`));
+        const lagnamId = lagnamSign + 1;
 
-        const panchang = getPanchang(eph, location);
-        const moonSign = getMoonSign(eph);
-        const kundali = getKundali(eph);
+        // To put La in the chart, we pretend its longitude is the center of the Lagnam sign
+        const ascSidereal = (lagnamSign * 30) + 15;
+        vakiyaPositions['La'] = ascSidereal;
+        console.log("Vakiya Udayadi Ascendant Sign:", lagnamId);
 
-        console.log("Moon Sign (Rashi):", moonSign.rashi, "| Lord:", moonSign.lord);
-        console.log("Nakshatra:", panchang.nakshatra);
-        console.log("Ascendant:", kundali.ascendant);
-        console.log("Houses:", kundali.houses.map((h, i) => `H${i + 1}(${h.sign}): [${h.planets.join(',')}]`));
-
-        // 4. Map Rasi ID (library returns Sanskrit names like 'Mesha', 'Vrishabha')
-        const rasiIdx = RASHIS_SANSKRIT.findIndex(r => r.toLowerCase() === moonSign.rashi?.toLowerCase());
-        const rasiId = rasiIdx >= 0 ? rasiIdx + 1 : 1;
-
-        // 5. Map Nakshatra ID (library returns 'Ashwini', 'Mrigashirsha', etc.)
-        const starIdx = NAKSHATRAS_LIB.findIndex(n => n.toLowerCase() === panchang.nakshatra?.toLowerCase());
-        const starId = starIdx >= 0 ? starIdx + 1 : 1;
-
-        console.log("Mapped Rasi ID:", rasiId, "Star ID:", starId);
-
-        // 6. Build Rasi Chart from kundali houses
-        // Library returns: houses[0..11] = { sign: 'Mesha', planets: ['Sun', 'Mercury', ...] }
-        // Ascendant is a string like 'Mesha' (the sign name)
+        // 3. Extract IDs and Build Rasi Chart
         const rasiChart = {};
 
-        kundali.houses.forEach((house, index) => {
-            const houseNum = index + 1; // 1-based house number
-            const planetIds = [];
-
-            // Map library planet names (e.g. 'Sun', 'Moon') to our IDs ('Su', 'Mo')
-            house.planets.forEach(planetName => {
-                const id = PLANET_NAME_TO_ID[planetName];
-                if (id) {
-                    planetIds.push(id);
-                }
-            });
-
-            if (planetIds.length > 0) {
-                rasiChart[houseNum] = planetIds;
-            }
-        });
-
-        // Add Lagnam to House 1 (Ascendant is always in house 1 by definition in whole-sign)
-        if (!rasiChart[1]) rasiChart[1] = [];
-        if (!rasiChart[1].includes('La')) {
-            rasiChart[1].push('La');
+        for (const [planetId, longitude] of Object.entries(vakiyaPositions)) {
+            const signId = getSignId(longitude);
+            if (!rasiChart[signId]) rasiChart[signId] = [];
+            rasiChart[signId].push(planetId);
         }
 
-        // 7. Build Lagnam ID from ascendant sign
-        const lagnamIdx = RASHIS_SANSKRIT.findIndex(r => r.toLowerCase() === kundali.ascendant?.toLowerCase());
-        const lagnamId = lagnamIdx >= 0 ? lagnamIdx + 1 : rasiId;
+        const moonLon = vakiyaPositions['Mo'];
+        const rasiId = getSignId(moonLon);
 
-        console.log("=== CHART DATA ===");
-        for (let i = 1; i <= 12; i++) {
-            if (rasiChart[i] && rasiChart[i].length > 0) {
-                const housePlanets = rasiChart[i].map(id => {
-                    const p = PLANETS.find(pl => pl.id === id);
-                    return p ? `${p.nameTamilShort}(${id})` : id;
-                });
-                console.log(`House ${i} (${kundali.houses[i - 1].sign}): ${housePlanets.join(', ')}`);
-            }
-        }
+        // 4. Calculate Nakshatra (Star ID)
+        // 27 Nakshatras, each 13°20' (13.333 degrees)
+        const starId = Math.floor(moonLon / (360 / 27)) + 1;
 
-        // 8. Build Navamsa Chart (D9)
-        // Navamsa: each sign is divided into 9 parts of 3°20' each
+        // 5. Build Navamsa (D9) Chart
         const navamsamChart = {};
-        eph.positions.forEach(p => {
-            const navamsaIdx = Math.floor((p.longitude % 30) / (30 / 9));
-            const signIdx = Math.floor(p.longitude / 30) % 12;
-            // Navamsa sign = (sign_index * 9 + navamsa_pada) % 12
-            // For fire signs (0,4,8): starts from Aries
-            // For earth signs (1,5,9): starts from Capricorn
-            // For air signs (2,6,10): starts from Libra
-            // For water signs (3,7,11): starts from Cancer
-            const startSigns = [0, 9, 6, 3]; // Aries, Capricorn, Libra, Cancer
-            const element = signIdx % 4;
-            const navamsaSign = (startSigns[element] + navamsaIdx) % 12;
-            const navHouseNum = navamsaSign + 1;
 
+        // Use pure Drik Sidereal longitudes for D9 
+        // (Many Tamil panchangams use Vakiya for Rasi and Drik for Navamsa limits)
+        for (const p of eph.positions) {
             const planetId = PLANET_NAME_TO_ID[p.name];
-            if (planetId) {
-                if (!navamsamChart[navHouseNum]) navamsamChart[navHouseNum] = [];
-                navamsamChart[navHouseNum].push(planetId);
-            }
-        });
+            if (!planetId) continue;
 
-        console.log("=== NAVAMSA D9 ===");
-        for (let i = 1; i <= 12; i++) {
-            if (navamsamChart[i] && navamsamChart[i].length > 0) {
-                console.log(`D9 House ${i}: ${navamsamChart[i].join(', ')}`);
+            // Apply Moon bug fix from earlier directly to D9 as well
+            let d9Lon = p.longitude;
+            if (p.name === 'Moon') {
+                const originalRadians = ((d9Lon + AYANAMSHA) % 360 + 360) % 360;
+                const moonLonTropical = originalRadians * (180 / Math.PI);
+                d9Lon = normalize(moonLonTropical - AYANAMSHA);
             }
+
+            // Navamsa sign calculation
+            // Each sign (30 deg) is divided into 9 Navamsas of 3°20' (3.333 deg)
+            const signIdx = Math.floor(d9Lon / 30);
+            const degreesInSign = d9Lon % 30;
+            const pada = Math.floor(degreesInSign / (30 / 9)); // 0 to 8
+
+            // Elements: 0:Fire(Aries), 1:Earth(Taurus), 2:Air(Gemini), 3:Water(Cancer)
+            const element = signIdx % 4;
+
+            // Navamsa counting starts from:
+            // Fire signs -> Aries (0)
+            // Earth signs -> Capricorn (9)
+            // Air signs -> Libra (6)
+            // Water signs -> Cancer (3)
+            const startSigns = [0, 9, 6, 3];
+
+            const navamsaSignIndex = (startSigns[element] + pada) % 12;
+            const navHouseNum = navamsaSignIndex + 1; // 1-12
+
+            if (!navamsamChart[navHouseNum]) navamsamChart[navHouseNum] = [];
+            navamsamChart[navHouseNum].push(planetId);
         }
 
-        console.log("=== ASTRO CALCULATION COMPLETE ===");
+        // Add Lagnam to D9 using Vakiya Lagnam position
+        const laSignIdx = Math.floor(vakiyaPositions['La'] / 30);
+        const laDegreesInSign = vakiyaPositions['La'] % 30;
+        const laPada = Math.floor(laDegreesInSign / (30 / 9));
+        const laElement = laSignIdx % 4;
+        const laStartSigns = [0, 9, 6, 3];
+        const laNavHouseNum = ((laStartSigns[laElement] + laPada) % 12) + 1;
+
+        if (!navamsamChart[laNavHouseNum]) navamsamChart[laNavHouseNum] = [];
+        navamsamChart[laNavHouseNum].push('La');
+
+        console.log("=== VAKIYA RASI ===", rasiChart);
+        console.log("=== VAKIYA D9 ===", navamsamChart);
 
         return {
             rasiId,

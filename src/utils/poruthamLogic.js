@@ -1,4 +1,4 @@
-import { STARS, RASIS, YONI_ENEMIES, PLANET_FRIENDS } from '../data/poruthamData';
+import { STARS, RASIS, YONI_ENEMIES, PLANET_FRIENDS } from '../data/poruthamData.js';
 
 // Calculates total malefic dosha points from Lagna, Moon, and Venus
 const calculatePapasamyam = (chart, lagnamId, moonRasiId, venusHouseId) => {
