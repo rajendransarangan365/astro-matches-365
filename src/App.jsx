@@ -7,6 +7,8 @@ import { Heart, Sparkles, LogOut, Save, CheckCircle2, History, User, Calculator,
 import { useAuth } from './context/AuthContext';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
+import ForgotPassword from './components/ForgotPassword';
+import ProfileSettingsModal from './components/ProfileSettingsModal';
 
 import { useProfiles } from './hooks/useProfiles';
 import { usePorutham } from './hooks/usePorutham';
@@ -17,6 +19,7 @@ function App() {
   const { user, token, logout, isAuthenticated, loading } = useAuth();
   const [authMode, setAuthMode] = useState('login');
   const [activePage, setActivePage] = useState('matching'); // 'matching', 'jathagam', 'matches', 'dashboard'
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const [brideData, setBrideData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
   const [groomData, setGroomData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
@@ -28,21 +31,39 @@ function App() {
   if (loading) return <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', color: 'var(--text-muted)' }}>Loading...</div>;
 
   if (!isAuthenticated) {
-    return authMode === 'login' ? (
-      <LoginPage onSwitch={() => setAuthMode('signup')} />
-    ) : (
-      <SignupPage onSwitch={() => setAuthMode('login')} />
-    );
+    if (authMode === 'login') return <LoginPage onSwitch={() => setAuthMode('signup')} onForgot={() => setAuthMode('forgot-password')} />;
+    if (authMode === 'signup') return <SignupPage onSwitch={() => setAuthMode('login')} />;
+    if (authMode === 'forgot-password') return <ForgotPassword onBack={() => setAuthMode('login')} />;
   }
 
   return (
     <>
+      <ProfileSettingsModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
+
       {/* Modern Navbar */}
       <nav className="navbar">
-        <div className="nav-brand">
-          <span>வணக்கம்,</span>
-          <strong>{user?.name}</strong>
-        </div>
+        <button
+          className="nav-brand"
+          onClick={() => setIsProfileModalOpen(true)}
+          style={{
+            background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+            display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem',
+            borderRadius: '0.5rem', transition: 'background 0.2s', outline: 'none'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+        >
+          <div style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '0.4rem', borderRadius: '50%', display: 'flex' }}>
+            <User size={16} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1 }}>வணக்கம்,</span>
+            <strong style={{ fontSize: '0.9rem', lineHeight: 1.2 }}>{user?.name}</strong>
+          </div>
+        </button>
 
         {/* Page Tabs */}
         <div className="nav-tabs">

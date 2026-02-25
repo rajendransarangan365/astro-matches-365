@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { UserPlus, Mail, Lock, User, AlertCircle } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle, ShieldQuestion, PenTool, Phone } from 'lucide-react';
 
 const SignupPage = ({ onSwitch }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [mobile, setMobile] = useState('');
     const [password, setPassword] = useState('');
+    const [securityQuestion, setSecurityQuestion] = useState('உங்களுக்கு பிடித்த செல்லப்பிராணியின் பெயர் என்ன?');
+    const [securityAnswer, setSecurityAnswer] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
@@ -20,7 +23,7 @@ const SignupPage = ({ onSwitch }) => {
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password })
+                body: JSON.stringify({ name, email, mobile, password, securityQuestion, securityAnswer })
             });
 
             const data = await response.json();
@@ -81,12 +84,52 @@ const SignupPage = ({ onSwitch }) => {
                     </div>
 
                     <div className="input-group">
+                        <label><Phone size={16} /> கைபேசி எண் (Mobile No)</label>
+                        <input
+                            type="tel"
+                            placeholder="உங்கள் கைபேசி எண்"
+                            value={mobile}
+                            onChange={(e) => setMobile(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className="input-group">
                         <label><Lock size={16} /> கடவுச்சொல் (Password)</label>
                         <input
                             type="password"
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className="input-group">
+                        <label><ShieldQuestion size={16} /> பாதுகாப்பு கேள்வி (Security Question)</label>
+                        <select
+                            value={securityQuestion}
+                            onChange={(e) => setSecurityQuestion(e.target.value)}
+                            required
+                            style={{
+                                width: '100%', padding: '0.75rem 1rem', background: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '0.5rem',
+                                color: 'var(--text-primary)', outline: 'none', cursor: 'pointer'
+                            }}
+                        >
+                            <option value="உங்களுக்கு பிடித்த செல்லப்பிராணியின் பெயர் என்ன?" style={{ background: '#0a0e1a' }}>உங்களுக்கு பிடித்த செல்லப்பிராணியின் பெயர் என்ன? (Favorite Pet)</option>
+                            <option value="நீங்கள் பிறந்த ஊர் எது?" style={{ background: '#0a0e1a' }}>நீங்கள் பிறந்த ஊர் எது? (Birth City)</option>
+                            <option value="உங்கள் சிறுவயது செல்லப்பெயர் என்ன?" style={{ background: '#0a0e1a' }}>உங்கள் சிறுவயது செல்லப்பெயர் என்ன? (Childhood Nickname)</option>
+                        </select>
+                    </div>
+
+                    <div className="input-group">
+                        <label><PenTool size={16} /> பதில் (Answer)</label>
+                        <input
+                            type="text"
+                            placeholder="உங்கள் பதில் (Your Answer)"
+                            value={securityAnswer}
+                            onChange={(e) => setSecurityAnswer(e.target.value)}
                             required
                         />
                     </div>

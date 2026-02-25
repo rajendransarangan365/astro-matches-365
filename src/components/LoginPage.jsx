@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
 
-const LoginPage = ({ onSwitch }) => {
+const LoginPage = ({ onSwitch, onForgot }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -82,6 +82,16 @@ const LoginPage = ({ onSwitch }) => {
                     <button type="submit" disabled={loading} style={{ marginTop: '0.5rem' }}>
                         {loading ? 'சரிபார்க்கப்படுகிறது...' : 'உள்நுழை (Login)'}
                     </button>
+
+                    <div style={{ textAlign: 'right', marginTop: '-0.5rem' }}>
+                        <button
+                            type="button"
+                            onClick={onForgot}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--primary)', padding: 0, fontSize: '0.85rem', cursor: 'pointer' }}
+                        >
+                            கடவுச்சொல் மறந்துவிட்டதா? (Forgot Password?)
+                        </button>
+                    </div>
                 </form>
 
                 <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
