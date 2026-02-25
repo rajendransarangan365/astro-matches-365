@@ -161,7 +161,9 @@ const PoruthamResult = ({ data }) => {
                                                         borderBottom: '1px solid rgba(168, 85, 247, 0.3)',
                                                         display: 'flex',
                                                         alignItems: 'center',
-                                                        gap: '0.5rem'
+                                                        gap: '0.5rem',
+                                                        pageBreakInside: 'avoid',
+                                                        breakInside: 'avoid'
                                                     }}>
                                                         {trimmed.replace('## ', '')}
                                                     </h3>
@@ -174,7 +176,9 @@ const PoruthamResult = ({ data }) => {
                                                         fontSize: '0.95rem',
                                                         fontWeight: 'bold',
                                                         marginTop: '1.5rem',
-                                                        marginBottom: '0.5rem'
+                                                        marginBottom: '0.5rem',
+                                                        pageBreakInside: 'avoid',
+                                                        breakInside: 'avoid'
                                                     }}>
                                                         {trimmed.replace('### ', '')}
                                                     </h4>
@@ -190,7 +194,9 @@ const PoruthamResult = ({ data }) => {
                                                         marginBottom: '0.75rem',
                                                         fontSize: '0.9rem',
                                                         lineHeight: '1.7',
-                                                        color: '#fca5a5'
+                                                        color: '#fca5a5',
+                                                        pageBreakInside: 'avoid',
+                                                        breakInside: 'avoid'
                                                     }} dangerouslySetInnerHTML={{ __html: trimmed.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #f87171">$1</strong>') }} />
                                                 );
                                             } else if (trimmed.startsWith('✅') && trimmed.includes('திருமணம்')) {
@@ -204,7 +210,9 @@ const PoruthamResult = ({ data }) => {
                                                         marginBottom: '0.75rem',
                                                         fontSize: '0.9rem',
                                                         lineHeight: '1.7',
-                                                        color: '#86efac'
+                                                        color: '#86efac',
+                                                        pageBreakInside: 'avoid',
+                                                        breakInside: 'avoid'
                                                     }} dangerouslySetInnerHTML={{ __html: trimmed.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #4ade80">$1</strong>') }} />
                                                 );
                                             } else if (trimmed.startsWith('🟡') || trimmed.startsWith('⚠️')) {
@@ -218,7 +226,9 @@ const PoruthamResult = ({ data }) => {
                                                         marginBottom: '0.75rem',
                                                         fontSize: '0.9rem',
                                                         lineHeight: '1.7',
-                                                        color: '#fde68a'
+                                                        color: '#fde68a',
+                                                        pageBreakInside: 'avoid',
+                                                        breakInside: 'avoid'
                                                     }} dangerouslySetInnerHTML={{ __html: trimmed.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #fbbf24">$1</strong>') }} />
                                                 );
                                             } else {
@@ -234,7 +244,9 @@ const PoruthamResult = ({ data }) => {
                                                         borderLeft: isRemedy ? '3px solid rgba(168, 85, 247, 0.3)' : 'none',
                                                         paddingTop: isRemedy ? '0.25rem' : '0',
                                                         paddingBottom: isRemedy ? '0.25rem' : '0',
-                                                        whiteSpace: 'pre-wrap'
+                                                        whiteSpace: 'pre-wrap',
+                                                        pageBreakInside: 'avoid',
+                                                        breakInside: 'avoid'
                                                     }} dangerouslySetInnerHTML={{ __html: trimmed.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #e2e8f0">$1</strong>') }} />
                                                 );
                                             }

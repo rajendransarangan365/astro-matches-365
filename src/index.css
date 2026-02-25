@@ -1067,11 +1067,39 @@ button:disabled {
     display: none !important;
   }
 
-  /* Make sure printing area text is dark */
   .print-only * {
     color: black !important;
     text-shadow: none !important;
     background: transparent !important;
+  }
+
+  /* Global prevent breaks inside important elements */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  li,
+  img,
+  table,
+  tr,
+  th,
+  td,
+  blockquote,
+  .glass-card,
+  .printable-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Prevent widows and orphans */
+  p,
+  li,
+  blockquote {
+    orphans: 3;
+    widows: 3;
   }
 
   /* Specific overrides for Porutham Result expansion */
