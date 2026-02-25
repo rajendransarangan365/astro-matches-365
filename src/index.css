@@ -114,47 +114,60 @@ body {
   gap: 0.5rem;
 }
 
-/* Nav Tabs */
+/* Nav Tabs - Dynamic Pill Style */
 .nav-tabs {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  background: rgba(255, 255, 255, 0.03);
+  gap: 0.5rem;
+  background: #111113;
+  /* Deep dark background matching the image */
   border-radius: 999px;
-  padding: 0.25rem;
-  border: 1px solid var(--glass-border);
+  padding: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-.nav-tab {
+.nav-tab.dynamic-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.9rem;
+  justify-content: center;
   border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 500;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all var(--transition);
-  width: auto;
-  margin: 0;
-}
-
-.nav-tab:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
-  transform: none;
-  box-shadow: none;
-}
-
-.nav-tab.active {
-  background: rgba(139, 92, 246, 0.15);
-  color: var(--accent-light);
+  font-size: 0.85rem;
   font-weight: 600;
-  transform: none;
-  box-shadow: none;
+  border: none;
+  cursor: pointer;
+  margin: 0;
+  height: 40px;
+  /* Instead of pure transition we handle width animations with Framer Motion,
+     but we keep color transitions smooth */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-tab.dynamic-pill.inactive {
+  background: transparent;
+  color: #a1a1aa;
+  width: 40px;
+  /* Perfect circle when inactive */
+  padding: 0;
+}
+
+.nav-tab.dynamic-pill.inactive:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4f4f5;
+}
+
+.nav-tab.dynamic-pill.active {
+  background: #86efac;
+  /* Bright green matching the image */
+  color: #064e3b;
+  /* Deep dark green text */
+  padding: 0 1.25rem;
+  min-width: 40px;
+}
+
+.nav-tab.dynamic-pill.active svg {
+  color: #064e3b;
+  /* Match icon color to text */
 }
 
 .nav-btn {
@@ -704,16 +717,26 @@ button:disabled {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    padding: 0.35rem;
+    /* Make the pill container slightly thinner on mobile */
   }
 
   .nav-tabs::-webkit-scrollbar {
     display: none;
   }
 
-  .nav-tab {
-    font-size: 0.72rem;
-    padding: 0.4rem 0.7rem;
-    white-space: nowrap;
+  .nav-tab.dynamic-pill {
+    height: 36px;
+    font-size: 0.8rem;
+  }
+
+  .nav-tab.dynamic-pill.inactive {
+    width: 36px;
+  }
+
+  .nav-tab.dynamic-pill.active {
+    min-width: 36px;
+    padding: 0 1rem;
   }
 
   .nav-btn {

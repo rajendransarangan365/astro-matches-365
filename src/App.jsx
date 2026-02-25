@@ -4,6 +4,7 @@ import PoruthamResult from './components/PoruthamResult';
 import JathagamCalculator from './components/JathagamCalculator';
 import MatchFinder from './components/MatchFinder';
 import { Heart, Sparkles, LogOut, Save, CheckCircle2, History, User, Calculator, HeartHandshake, Search } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
@@ -66,35 +67,43 @@ function App() {
             </div>
           </button>
 
-          {/* Page Tabs */}
+          {/* Page Tabs - Dynamic Pill Style */}
           <div className="nav-tabs">
-            <button
-              className={`nav-tab ${activePage === 'matching' ? 'active' : ''}`}
-              onClick={() => setActivePage('matching')}
-            >
-              <HeartHandshake size={14} /> பொருத்தம்
-            </button>
-            <button
-              className={`nav-tab ${activePage === 'jathagam' ? 'active' : ''}`}
-              onClick={() => setActivePage('jathagam')}
-            >
-              <Calculator size={14} /> ஜாதகம்
-            </button>
-            <button
-              className={`nav-tab ${activePage === 'matches' ? 'active' : ''}`}
-              onClick={() => setActivePage('matches')}
-            >
-              <Search size={14} /> தேடல்
-            </button>
-            <button
-              className={`nav-tab ${activePage === 'dashboard' ? 'active' : ''}`}
-              onClick={() => {
-                if (activePage !== 'dashboard') fetchMatches();
-                setActivePage('dashboard');
-              }}
-            >
-              <History size={14} /> Dashboard
-            </button>
+            {[
+              { id: 'matching', icon: HeartHandshake, label: 'பொருத்தம்' },
+              { id: 'jathagam', icon: Calculator, label: 'ஜாதகம்' },
+              { id: 'matches', icon: Search, label: 'தேடல்' },
+              { id: 'dashboard', icon: History, label: 'Dashboard', onClick: fetchMatches }
+            ].map((tab) => {
+              const isActive = activePage === tab.id;
+              const Icon = tab.icon;
+
+              return (
+                <button
+                  key={tab.id}
+                  className={`nav-tab dynamic-pill ${isActive ? 'active' : 'inactive'}`}
+                  onClick={() => {
+                    if (tab.onClick && activePage !== tab.id) tab.onClick();
+                    setActivePage(tab.id);
+                  }}
+                >
+                  <Icon size={16} strokeWidth={isActive ? 2.5 : 2} style={{ flexShrink: 0 }} />
+                  <AnimatePresence>
+                    {isActive && (
+                      <motion.span
+                        initial={{ width: 0, opacity: 0, paddingLeft: 0 }}
+                        animate={{ width: 'auto', opacity: 1, paddingLeft: '0.35rem' }}
+                        exit={{ width: 0, opacity: 0, paddingLeft: 0 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
+                      >
+                        {tab.label}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </button>
+              );
+            })}
           </div>
 
           <div className="nav-actions">
