@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { CheckCircle2, XCircle, AlertCircle, Heart, ChevronDown, ChevronUp, Sparkles, Download, Share2, Scale } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 import RasiKattam from './RasiKattam';
 
@@ -15,17 +17,92 @@ const PoruthamResult = ({ data }) => {
 
     const handleDownloadPDF = async (e) => {
         e.stopPropagation();
+        if (!reportRef.current) return;
 
         // Ensure details are visible for capturing
         const wasHidden = !showDetails;
-        if (wasHidden) {
-            setShowDetails(true);
-            // Give React a moment to render the expanded details before opening the print dialog
-            setTimeout(() => {
-                window.print();
-            }, 500);
-        } else {
-            window.print();
+        if (wasHidden) setShowDetails(true);
+
+        setIsDownloading(true);
+
+        try {
+            // Give React a moment to render the expanded details
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            const element = reportRef.current;
+            element.classList.add('pdf-export-mode');
+
+            // Temporarily hide buttons for capture
+            const buttons = element.querySelectorAll('button');
+            buttons.forEach(btn => btn.style.display = 'none');
+
+            // Force background to white for capture to avoid dark mode conflicts
+            const originalBg = element.style.background;
+            element.style.background = '#ffffff';
+
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            });
+
+            // Cleanup DOM modifications
+            element.style.background = originalBg;
+            element.classList.remove('pdf-export-mode');
+            buttons.forEach(btn => btn.style.display = '');
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+            // Generate Multipage A4 PDF with borders
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            const margin = 12; // 12mm professional margin
+            const contentWidth = pdfWidth;
+
+            const imgProps = pdf.getImageProperties(imgData);
+            // Calculate how tall the image will be when scaled to A4 width
+            const imgHeightInMm = (imgProps.height * contentWidth) / imgProps.width;
+
+            let heightLeft = imgHeightInMm;
+            let position = 0; // Start at exact top edge of the PDF page
+
+            // Helper function to draw a neat white clipping mask around the borders
+            const drawMaskAndBorder = () => {
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(0, 0, pdfWidth, margin, 'F'); // Top margin
+                pdf.rect(0, pdfHeight - margin, pdfWidth, margin, 'F'); // Bottom margin
+                pdf.rect(0, 0, margin, pdfHeight, 'F'); // Left margin
+                pdf.rect(pdfWidth - margin, 0, margin, pdfHeight, 'F'); // Right margin
+
+                // Draw crisp black border line
+                pdf.setDrawColor(0, 0, 0);
+                pdf.setLineWidth(0.5);
+                pdf.rect(margin, margin, pdfWidth - 2 * margin, pdfHeight - 2 * margin);
+            };
+
+            // Page 1
+            pdf.addImage(imgData, 'JPEG', 0, position, contentWidth, imgHeightInMm);
+            drawMaskAndBorder();
+            heightLeft -= pdfHeight;
+
+            // Subsequent Pages
+            while (heightLeft > 0) {
+                position -= pdfHeight; // Shift image tracking upwards by one page height
+                pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, position, contentWidth, imgHeightInMm);
+                drawMaskAndBorder();
+                heightLeft -= pdfHeight;
+            }
+
+            pdf.save(`Thirumana_Porutham_${bride.name}_${groom.name}.pdf`);
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('PDF டவுன்லோட் செய்வதில் பிழை ஏற்பட்டது (Failed to download PDF)');
+        } finally {
+            setIsDownloading(false);
+            if (wasHidden) setShowDetails(false);
         }
     };
 
@@ -35,13 +112,26 @@ const PoruthamResult = ({ data }) => {
         message += `பெண்: ${bride.name} | ஆண்: ${groom.name}\n\n`;
         message += `*முடிவு*: ${canMarry ? 'பொருத்தம் உண்டு ✅' : 'பொருத்தம் இல்லை ❌'}\n`;
         message += `*பொருத்தம்*: ${summaryReport?.percentage}%\n`;
-        message += `${recommendation}\n\n`;
+        message += `*பொதுவான கருத்து*: ${recommendation}\n\n`;
 
         if (summaryReport.pros.length > 0) {
-            message += `*நிறைகள்*:\n`;
-            summaryReport.pros.forEach(p => { message += `- ${p}\n`; });
+            message += `*நிறைகள் (Pros)*:\n`;
+            summaryReport.pros.forEach(p => { message += `✅ ${p}\n`; });
             message += `\n`;
         }
+
+        if (summaryReport.cons && summaryReport.cons.length > 0) {
+            message += `*குறைகள் (Cons)*:\n`;
+            summaryReport.cons.forEach(c => { message += `❌ ${c}\n`; });
+            message += `\n`;
+        }
+
+        message += `*விவரமான அறிக்கை (Verdict)*:\n${summaryReport?.verdict}\n\n`;
+
+        let conclusion = "இந்த ஜாதகங்களை இணைப்பது ";
+        conclusion += canMarry ? "உத்தமம் மற்றும் நன்மைகளைத் தரும் (Highly Recommended)." : "தவிர்ப்பது நல்லது (Not Recommended).";
+
+        message += `*இறுதி முடிவு*: ${conclusion}\n`;
 
         const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');

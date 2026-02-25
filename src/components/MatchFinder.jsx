@@ -2,6 +2,8 @@ import React, { useState, useRef } from 'react';
 import { STARS, RASIS } from '../data/poruthamData';
 import { calculatePorutham } from '../utils/poruthamLogic';
 import { Search, Star, User, Moon, CheckCircle2, XCircle, TrendingUp, Filter, Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 const MatchFinder = () => {
     const [searchType, setSearchType] = useState('bride'); // 'bride' looking for groom, or 'groom' looking for bride
@@ -19,9 +21,68 @@ const MatchFinder = () => {
         : RASIS;
 
     const handleDownloadPDF = async () => {
-        // We use the browser's native print functionality which generates high quality vector text PDFs
-        // The CSS @media print will handle hiding the UI and showing the .print-only section
-        window.print();
+        if (!printRef.current) return;
+        setIsDownloading(true);
+
+        try {
+            const element = printRef.current;
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                backgroundColor: '#ffffff'
+            });
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+            // Generate Multipage A4 PDF with borders in Landscape for wide tables
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            const margin = 12; // 12mm professional margin
+            const contentWidth = pdfWidth;
+
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgHeightInMm = (imgProps.height * contentWidth) / imgProps.width;
+
+            let heightLeft = imgHeightInMm;
+            let position = 0; // exact top edge
+
+            const drawMaskAndBorder = () => {
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(0, 0, pdfWidth, margin, 'F');
+                pdf.rect(0, pdfHeight - margin, pdfWidth, margin, 'F');
+                pdf.rect(0, 0, margin, pdfHeight, 'F');
+                pdf.rect(pdfWidth - margin, 0, margin, pdfHeight, 'F');
+
+                pdf.setDrawColor(0, 0, 0);
+                pdf.setLineWidth(0.5);
+                pdf.rect(margin, margin, pdfWidth - 2 * margin, pdfHeight - 2 * margin);
+            };
+
+            // Page 1
+            pdf.addImage(imgData, 'JPEG', 0, position, contentWidth, imgHeightInMm);
+            drawMaskAndBorder();
+            heightLeft -= pdfHeight;
+
+            // Subsequent Pages
+            while (heightLeft > 0) {
+                position -= pdfHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, position, contentWidth, imgHeightInMm);
+                drawMaskAndBorder();
+                heightLeft -= pdfHeight;
+            }
+
+            const fileName = searchType === 'bride'
+                ? `Thirumana_Porutham_For_Bride_${Date.now()}.pdf`
+                : `Thirumana_Porutham_For_Groom_${Date.now()}.pdf`;
+
+            pdf.save(fileName);
+        } catch (error) {
+            console.error("PDF Generation Error:", error);
+            alert("PDF பதிவிறக்குவதில் பிழை ஏற்பட்டது.");
+        } finally {
+            setIsDownloading(false);
+        }
     };
 
     const handleSearch = () => {
@@ -93,7 +154,7 @@ const MatchFinder = () => {
     };
 
     return (
-        <div className="glass-card no-print" style={{ padding: '2rem' }}>
+        <div className="glass-card" style={{ padding: '2rem' }}>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', justifyContent: 'center' }}>
                 <Star size={24} color="#fcd34d" /> நட்சத்திர பொருத்தம் தேடல் (Find Matching Stars)
             </h2>
@@ -335,7 +396,7 @@ const MatchFinder = () => {
 
             {/* --- HIDDEN PRINTABLE UI FOR PDF GENERATION --- */}
             {results.length > 0 && (
-                <div className="print-only" style={{ display: 'none' }}>
+                <div style={{ position: 'absolute', top: '-20000px', left: '-20000px', width: '1200px', pointerEvents: 'none' }}>
                     <div ref={printRef} style={{ background: '#ffffff', color: '#000000', padding: '30px', fontFamily: 'sans-serif' }}>
 
                         <div className="print-title" style={{ textAlign: 'center', marginBottom: '20px' }}>
