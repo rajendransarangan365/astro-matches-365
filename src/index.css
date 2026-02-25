@@ -138,13 +138,21 @@ body {
 }
 
 .nav-icon-btn.danger {
-  color: #ff6b6b;
-  background: rgba(239, 68, 68, 0.1);
+  color: #ffffff !important;
+  /* Force white for maximum visibility */
+  background: #ef4444;
+  /* Solid red background for better button detection */
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .nav-icon-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ff4d4d;
+  background: #dc2626;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+.nav-icon-btn.danger svg {
+  stroke: currentColor;
 }
 
 /* Nav Tabs - Dynamic Pill Style */

@@ -68,7 +68,7 @@ function App() {
               </div>
             </button>
             <button className="nav-icon-btn danger" onClick={logout} title="Logout">
-              <LogOut size={16} />
+              <LogOut size={18} strokeWidth={2.5} />
             </button>
           </div>
 
