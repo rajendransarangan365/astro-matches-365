@@ -9,6 +9,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon-512.png'],
+      workbox: {
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024 // 10MB limit
+      },
       manifest: {
         name: 'திருமணப் பொருத்தம் - Tamil Marriage Matching',
         short_name: 'பொருத்தம்',
