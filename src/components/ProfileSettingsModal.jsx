@@ -104,11 +104,11 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                 >
                     <button
                         onClick={onClose}
-                        style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', cursor: 'pointer', transition: 'all 0.2s', zIndex: 10 }}
-                        onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)'; }}
-                        onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; }}
+                        style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ff6b6b', cursor: 'pointer', transition: 'all 0.2s', zIndex: 10, padding: 0 }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)'; e.currentTarget.style.color = '#ff4d4d'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; e.currentTarget.style.color = '#ff6b6b'; }}
                     >
-                        <X size={20} />
+                        <X size={20} strokeWidth={2.5} />
                     </button>
 
                     <div style={{ padding: '2rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
