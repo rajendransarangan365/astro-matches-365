@@ -122,14 +122,17 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  flex-shrink: 0;
   border-radius: 0.5rem;
   border: none;
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition);
+  padding: 0;
 }
 
 .nav-icon-btn:hover {
@@ -138,15 +141,15 @@ body {
 }
 
 .nav-icon-btn.danger {
-  color: #ef4444 !important;
-  /* Minimal red icon */
-  background: transparent;
-  box-shadow: none;
+  color: #f87171 !important;
+  /* Soft Tailwind Red */
+  background: rgba(239, 68, 68, 0.08);
+  /* Very subtle tint to ensure it's "there" */
 }
 
 .nav-icon-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #f87171 !important;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444 !important;
   transform: translateY(-1px);
 }
 
