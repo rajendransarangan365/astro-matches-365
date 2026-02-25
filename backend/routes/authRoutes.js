@@ -4,6 +4,7 @@ import {
     loginUser,
     getMe,
     getUserSecurityDetails,
+    verifyCurrentPassword,
     getSecurityQuestion,
     verifySecurityAnswer,
     resetPassword,
@@ -17,6 +18,7 @@ router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.get('/me', protect, getMe);
 router.get('/security-details', protect, getUserSecurityDetails);
+router.post('/verify-password', protect, verifyCurrentPassword);
 router.put('/update-security', protect, updateSecurityDetails);
 
 // Password Reset Routes

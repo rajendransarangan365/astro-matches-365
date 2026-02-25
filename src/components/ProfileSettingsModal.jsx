@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, ShieldQuestion, PenTool, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { User, ShieldQuestion, PenTool, X, CheckCircle2, AlertCircle, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const ProfileSettingsModal = ({ isOpen, onClose }) => {
@@ -9,30 +9,49 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
     const [securityQuestion, setSecurityQuestion] = useState(user?.securityQuestion || 'உங்களுக்கு பிடித்த செல்லப்பிராணியின் பெயர் என்ன?');
     const [securityAnswer, setSecurityAnswer] = useState('');
     const [mobile, setMobile] = useState(user?.mobile || '');
+    const [isVerified, setIsVerified] = useState(false);
+    const [currentPassword, setCurrentPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    React.useEffect(() => {
-        if (isOpen && token) {
-            const fetchSecurityDetails = async () => {
-                try {
-                    const response = await fetch('/api/auth/security-details', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.securityQuestion) {
-                            setSecurityQuestion(data.securityQuestion);
-                        }
+    const handleVerify = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            const response = await fetch('/api/auth/verify-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ currentPassword })
+            });
+
+            if (response.ok) {
+                setIsVerified(true);
+                // Fetch the security question now that we are verified
+                const secResponse = await fetch('/api/auth/security-details', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (secResponse.ok) {
+                    const data = await secResponse.json();
+                    if (data.securityQuestion) {
+                        setSecurityQuestion(data.securityQuestion);
                     }
-                } catch (err) {
-                    console.error("Failed to fetch security details", err);
                 }
-            };
-            fetchSecurityDetails();
+            } else {
+                const data = await response.json();
+                setError(data.message || 'தற்போதைய கடவுச்சொல் தவறானது');
+            }
+        } catch (err) {
+            setError('சரிபார்ப்பதில் பிழை (Verification failed)');
+        } finally {
+            setLoading(false);
         }
-    }, [isOpen, token]);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -82,9 +101,11 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                 >
                     <button
                         onClick={onClose}
-                        style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                        style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', cursor: 'pointer', transition: 'all 0.2s', zIndex: 10 }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; }}
                     >
-                        <X size={18} />
+                        <X size={20} />
                     </button>
 
                     <div style={{ padding: '2rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
@@ -114,53 +135,75 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div className="input-group">
-                                <label><User size={14} /> மொபைல் எண் (Mobile)</label>
-                                <input
-                                    type="tel"
-                                    placeholder="உங்கள் மொபைல் எண்"
-                                    value={mobile}
-                                    onChange={(e) => setMobile(e.target.value)}
-                                    required
-                                    style={{ padding: '0.75rem 1rem', fontSize: '0.9rem' }}
-                                />
-                            </div>
+                        {!isVerified ? (
+                            <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div className="input-group">
+                                    <label><Lock size={14} /> தற்போதைய கடவுச்சொல் (Current Password)</label>
+                                    <input
+                                        type="password"
+                                        placeholder="உங்கள் கடவுச்சொல்"
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        required
+                                        style={{ padding: '0.75rem 1rem', fontSize: '0.9rem' }}
+                                    />
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem', lineHeight: '1.4' }}>
+                                        பாதுகாப்பு விவரங்களை காண அல்லது மாற்ற உங்கள் தற்போதைய கடவுச்சொல்லை உள்ளிடவும். (Enter your current password to view or modify security details.)
+                                    </p>
+                                </div>
+                                <button type="submit" disabled={loading} style={{ marginTop: '0.5rem', padding: '0.75rem' }}>
+                                    {loading ? 'சரிபார்க்கப்படுகிறது...' : 'சரிபார் (Verify Password)'}
+                                </button>
+                            </form>
+                        ) : (
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div className="input-group">
+                                    <label><User size={14} /> மொபைல் எண் (Mobile)</label>
+                                    <input
+                                        type="tel"
+                                        placeholder="உங்கள் மொபைல் எண்"
+                                        value={mobile}
+                                        onChange={(e) => setMobile(e.target.value)}
+                                        required
+                                        style={{ padding: '0.75rem 1rem', fontSize: '0.9rem' }}
+                                    />
+                                </div>
 
-                            <div className="input-group">
-                                <label><ShieldQuestion size={14} /> பாதுகாப்பு கேள்வி (Security Question)</label>
-                                <select
-                                    value={securityQuestion}
-                                    onChange={(e) => setSecurityQuestion(e.target.value)}
-                                    required
-                                    style={{
-                                        width: '100%', padding: '0.75rem 1rem', background: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '0.5rem',
-                                        color: 'var(--text-primary)', outline: 'none', cursor: 'pointer', fontSize: '0.9rem'
-                                    }}
-                                >
-                                    <option value="உங்களுக்கு பிடித்த செல்லப்பிராணியின் பெயர் என்ன?" style={{ background: '#0a0e1a' }}>உங்களுக்கு பிடித்த செல்லப்பிராணியின் பெயர் என்ன? (Favorite Pet)</option>
-                                    <option value="நீங்கள் பிறந்த ஊர் எது?" style={{ background: '#0a0e1a' }}>நீங்கள் பிறந்த ஊர் எது? (Birth City)</option>
-                                    <option value="உங்கள் சிறுவயது செல்லப்பெயர் என்ன?" style={{ background: '#0a0e1a' }}>உங்கள் சிறுவயது செல்லப்பெயர் என்ன? (Childhood Nickname)</option>
-                                </select>
-                            </div>
+                                <div className="input-group">
+                                    <label><ShieldQuestion size={14} /> பாதுகாப்பு கேள்வி (Security Question)</label>
+                                    <select
+                                        value={securityQuestion}
+                                        onChange={(e) => setSecurityQuestion(e.target.value)}
+                                        required
+                                        style={{
+                                            width: '100%', padding: '0.75rem 1rem', background: 'rgba(255, 255, 255, 0.05)',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '0.5rem',
+                                            color: 'var(--text-primary)', outline: 'none', cursor: 'pointer', fontSize: '0.9rem'
+                                        }}
+                                    >
+                                        <option value="உங்களுக்கு பிடித்த செல்லப்பிராணியின் பெயர் என்ன?" style={{ background: '#0a0e1a' }}>உங்களுக்கு பிடித்த செல்லப்பிராணியின் பெயர் என்ன? (Favorite Pet)</option>
+                                        <option value="நீங்கள் பிறந்த ஊர் எது?" style={{ background: '#0a0e1a' }}>நீங்கள் பிறந்த ஊர் எது? (Birth City)</option>
+                                        <option value="உங்கள் சிறுவயது செல்லப்பெயர் என்ன?" style={{ background: '#0a0e1a' }}>உங்கள் சிறுவயது செல்லப்பெயர் என்ன? (Childhood Nickname)</option>
+                                    </select>
+                                </div>
 
-                            <div className="input-group">
-                                <label><PenTool size={14} /> புதிய பதில் (New Answer)</label>
-                                <input
-                                    type="text"
-                                    placeholder="உங்கள் புதிய பதில்"
-                                    value={securityAnswer}
-                                    onChange={(e) => setSecurityAnswer(e.target.value)}
-                                    required
-                                    style={{ padding: '0.75rem 1rem', fontSize: '0.9rem' }}
-                                />
-                            </div>
+                                <div className="input-group">
+                                    <label><PenTool size={14} /> புதிய பதில் (New Answer)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="உங்கள் புதிய பதில்"
+                                        value={securityAnswer}
+                                        onChange={(e) => setSecurityAnswer(e.target.value)}
+                                        required
+                                        style={{ padding: '0.75rem 1rem', fontSize: '0.9rem' }}
+                                    />
+                                </div>
 
-                            <button type="submit" disabled={loading || success} style={{ marginTop: '0.5rem', padding: '0.75rem' }}>
-                                {loading ? 'புதுப்பிக்கப்படுகிறது...' : 'புதுப்பி (Update Security)'}
-                            </button>
-                        </form>
+                                <button type="submit" disabled={loading || success} style={{ marginTop: '0.5rem', padding: '0.75rem' }}>
+                                    {loading ? 'புதுப்பிக்கப்படுகிறது...' : 'புதுப்பி (Update Security)'}
+                                </button>
+                            </form>
+                        )}
                     </div>
                 </motion.div>
             </div>

@@ -112,6 +112,26 @@ export const getUserSecurityDetails = async (req, res) => {
     }
 };
 
+export const verifyCurrentPassword = async (req, res) => {
+    try {
+        const { currentPassword } = req.body;
+        if (!currentPassword) {
+            return res.status(400).json({ message: 'கடவுச்சொல்லை உள்ளிடவும்' });
+        }
+
+        const { usersCollection } = await connectToDb();
+        const user = await usersCollection.findOne({ _id: new ObjectId(req.user._id) });
+
+        if (user && (await bcrypt.compare(currentPassword, user.password))) {
+            res.json({ success: true });
+        } else {
+            res.status(401).json({ message: 'தற்போதைய கடவுச்சொல் தவறானது (Incorrect password)' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'சேவையக பிழை (Server Error)' });
+    }
+};
+
 export const getSecurityQuestion = async (req, res) => {
     try {
         const { identifier } = req.params;
