@@ -45,61 +45,63 @@ function App() {
 
       {/* Modern Navbar */}
       <nav className="navbar">
-        <button
-          className="nav-brand"
-          onClick={() => setIsProfileModalOpen(true)}
-          style={{
-            background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
-            display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem',
-            borderRadius: '0.5rem', transition: 'background 0.2s', outline: 'none'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
-        >
-          <div style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '0.4rem', borderRadius: '50%', display: 'flex' }}>
-            <User size={16} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1 }}>வணக்கம்,</span>
-            <strong style={{ fontSize: '0.9rem', lineHeight: 1.2 }}>{user?.name}</strong>
-          </div>
-        </button>
-
-        {/* Page Tabs */}
-        <div className="nav-tabs">
+        <div className="nav-container">
           <button
-            className={`nav-tab ${activePage === 'matching' ? 'active' : ''}`}
-            onClick={() => setActivePage('matching')}
-          >
-            <HeartHandshake size={14} /> பொருத்தம்
-          </button>
-          <button
-            className={`nav-tab ${activePage === 'jathagam' ? 'active' : ''}`}
-            onClick={() => setActivePage('jathagam')}
-          >
-            <Calculator size={14} /> ஜாதகம்
-          </button>
-          <button
-            className={`nav-tab ${activePage === 'matches' ? 'active' : ''}`}
-            onClick={() => setActivePage('matches')}
-          >
-            <Search size={14} /> தேடல்
-          </button>
-          <button
-            className={`nav-tab ${activePage === 'dashboard' ? 'active' : ''}`}
-            onClick={() => {
-              if (activePage !== 'dashboard') fetchMatches();
-              setActivePage('dashboard');
+            className="nav-brand"
+            onClick={() => setIsProfileModalOpen(true)}
+            style={{
+              background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+              display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem',
+              borderRadius: '0.5rem', transition: 'background 0.2s', outline: 'none'
             }}
+            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+            onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
           >
-            <History size={14} /> Dashboard
+            <div style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '0.4rem', borderRadius: '50%', display: 'flex' }}>
+              <User size={16} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1 }}>வணக்கம்,</span>
+              <strong style={{ fontSize: '0.9rem', lineHeight: 1.2, maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</strong>
+            </div>
           </button>
-        </div>
 
-        <div className="nav-actions">
-          <button className="nav-btn danger" onClick={logout}>
-            <LogOut size={14} /> Logout
-          </button>
+          {/* Page Tabs */}
+          <div className="nav-tabs">
+            <button
+              className={`nav-tab ${activePage === 'matching' ? 'active' : ''}`}
+              onClick={() => setActivePage('matching')}
+            >
+              <HeartHandshake size={14} /> பொருத்தம்
+            </button>
+            <button
+              className={`nav-tab ${activePage === 'jathagam' ? 'active' : ''}`}
+              onClick={() => setActivePage('jathagam')}
+            >
+              <Calculator size={14} /> ஜாதகம்
+            </button>
+            <button
+              className={`nav-tab ${activePage === 'matches' ? 'active' : ''}`}
+              onClick={() => setActivePage('matches')}
+            >
+              <Search size={14} /> தேடல்
+            </button>
+            <button
+              className={`nav-tab ${activePage === 'dashboard' ? 'active' : ''}`}
+              onClick={() => {
+                if (activePage !== 'dashboard') fetchMatches();
+                setActivePage('dashboard');
+              }}
+            >
+              <History size={14} /> Dashboard
+            </button>
+          </div>
+
+          <div className="nav-actions">
+            <button className="nav-btn danger" onClick={logout}>
+              <LogOut size={14} /> Logout
+            </button>
+          </div>
         </div>
       </nav>
 
