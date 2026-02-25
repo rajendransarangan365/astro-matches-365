@@ -106,7 +106,10 @@ export const getUserSecurityDetails = async (req, res) => {
             return res.status(404).json({ message: 'பயனர் கிடைக்கவில்லை' });
         }
 
-        res.json({ securityQuestion: user.securityQuestion || '' });
+        res.json({
+            securityQuestion: user.securityQuestion || '',
+            mobile: user.mobile || ''
+        });
     } catch (error) {
         res.status(500).json({ message: 'சேவையக பிழை' });
     }

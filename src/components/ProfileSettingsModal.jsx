@@ -41,6 +41,9 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                     if (data.securityQuestion) {
                         setSecurityQuestion(data.securityQuestion);
                     }
+                    if (data.mobile) {
+                        setMobile(data.mobile);
+                    }
                 }
             } else {
                 const data = await response.json();
