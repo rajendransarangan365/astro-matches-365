@@ -1,8 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { CheckCircle2, XCircle, AlertCircle, Heart, ChevronDown, ChevronUp, Sparkles, Download, Share2, Scale } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
 import RasiKattam from './RasiKattam';
 
@@ -17,39 +15,17 @@ const PoruthamResult = ({ data }) => {
 
     const handleDownloadPDF = async (e) => {
         e.stopPropagation();
-        if (!reportRef.current) return;
 
         // Ensure details are visible for capturing
         const wasHidden = !showDetails;
-        if (wasHidden) setShowDetails(true);
-
-        setIsDownloading(true);
-
-        try {
-            // Small delay to allow charts/details to render if they were hidden
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            const canvas = await html2canvas(reportRef.current, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#020617' // Match root bg-darker
-            });
-
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'px',
-                format: [canvas.width, canvas.height]
-            });
-
-            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-            pdf.save(`Thirumana_Porutham_${bride.name}_${groom.name}.pdf`);
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            alert('PDF டவுன்லோட் செய்வதில் பிழை ஏற்பட்டது (Failed to download PDF)');
-        } finally {
-            setIsDownloading(false);
-            if (wasHidden) setShowDetails(false);
+        if (wasHidden) {
+            setShowDetails(true);
+            // Give React a moment to render the expanded details before opening the print dialog
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        } else {
+            window.print();
         }
     };
 
@@ -159,7 +135,7 @@ const PoruthamResult = ({ data }) => {
                     >
                         <div style={{ background: 'var(--bg-darker)', padding: isDownloading ? '1rem' : 0 }}>
                             {summaryReport && (
-                                <div className="glass-card" style={{ border: '1px solid var(--primary)', background: 'rgba(168, 85, 247, 0.05)' }}>
+                                <div className="glass-card printable-card" style={{ border: '1px solid var(--primary)', background: 'rgba(168, 85, 247, 0.05)' }}>
                                     <h3 style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                         <Sparkles size={20} color="#c084fc" /> ஜாதகப் பலன் & அறிக்கை
                                     </h3>
@@ -293,7 +269,7 @@ const PoruthamResult = ({ data }) => {
                                 </div>
                             )}
 
-                            <div className="glass-card">
+                            <div className="glass-card printable-card">
                                 <h3>பொருத்தம் விவரங்கள் (Details)</h3>
                                 <div className="porutham-list" style={{ marginTop: '1rem' }}>
                                     {Object.entries(results).map(([key, value]) => (
@@ -319,7 +295,7 @@ const PoruthamResult = ({ data }) => {
                             </div>
 
                             {doshamResult && (
-                                <div className="glass-card" style={{ marginTop: '1rem' }}>
+                                <div className="glass-card printable-card" style={{ marginTop: '1rem' }}>
                                     <h3 style={{ color: '#fbbf24', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                         <Scale size={20} /> பாபசாம்யம் (Dosha Samyam - Planetary Match)
                                     </h3>
@@ -373,7 +349,7 @@ const PoruthamResult = ({ data }) => {
                                 </div>
                             )}
 
-                            <div className="glass-card" style={{ marginTop: '1rem' }}>
+                            <div className="glass-card printable-card" style={{ marginTop: '1rem' }}>
                                 <h3 style={{ marginBottom: '1rem' }}>ஜாதகக் கட்டங்கள் (Charts)</h3>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
                                     <div>

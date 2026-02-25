@@ -2,8 +2,6 @@ import React, { useState, useRef } from 'react';
 import { STARS, RASIS } from '../data/poruthamData';
 import { calculatePorutham } from '../utils/poruthamLogic';
 import { Search, Star, User, Moon, CheckCircle2, XCircle, TrendingUp, Filter, Download } from 'lucide-react';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
 
 const MatchFinder = () => {
     const [searchType, setSearchType] = useState('bride'); // 'bride' looking for groom, or 'groom' looking for bride
@@ -21,33 +19,9 @@ const MatchFinder = () => {
         : RASIS;
 
     const handleDownloadPDF = async () => {
-        if (!printRef.current) return;
-        setIsDownloading(true);
-
-        try {
-            const canvas = await html2canvas(printRef.current, { scale: 2, backgroundColor: '#ffffff' });
-            const imgData = canvas.toDataURL('image/png');
-
-            // Adjust to fit A4 width, Landscape orientation is better for wide tables
-            const pdf = new jsPDF('l', 'pt', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const imgRatio = canvas.height / canvas.width;
-            const printWidth = pdfWidth - 40;
-            const printHeight = printWidth * imgRatio;
-
-            pdf.addImage(imgData, 'PNG', 20, 20, printWidth, printHeight);
-
-            const fileName = searchType === 'bride'
-                ? `Thirumana_Porutham_For_Bride_${Date.now()}.pdf`
-                : `Thirumana_Porutham_For_Groom_${Date.now()}.pdf`;
-
-            pdf.save(fileName);
-        } catch (error) {
-            console.error("PDF Generation Error:", error);
-            alert("PDF பதிவிறக்குவதில் பிழை ஏற்பட்டது.");
-        } finally {
-            setIsDownloading(false);
-        }
+        // We use the browser's native print functionality which generates high quality vector text PDFs
+        // The CSS @media print will handle hiding the UI and showing the .print-only section
+        window.print();
     };
 
     const handleSearch = () => {
@@ -119,7 +93,7 @@ const MatchFinder = () => {
     };
 
     return (
-        <div className="glass-card" style={{ padding: '2rem' }}>
+        <div className="glass-card no-print" style={{ padding: '2rem' }}>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', justifyContent: 'center' }}>
                 <Star size={24} color="#fcd34d" /> நட்சத்திர பொருத்தம் தேடல் (Find Matching Stars)
             </h2>
@@ -361,7 +335,7 @@ const MatchFinder = () => {
 
             {/* --- HIDDEN PRINTABLE UI FOR PDF GENERATION --- */}
             {results.length > 0 && (
-                <div style={{ position: 'absolute', top: '-20000px', left: '-20000px', width: '1200px', pointerEvents: 'none' }}>
+                <div className="print-only" style={{ display: 'none' }}>
                     <div ref={printRef} style={{ background: '#ffffff', color: '#000000', padding: '30px', fontFamily: 'sans-serif' }}>
 
                         <div className="print-title" style={{ textAlign: 'center', marginBottom: '20px' }}>

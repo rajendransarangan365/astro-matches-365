@@ -1044,3 +1044,52 @@ button:disabled {
 .ss-options::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 92, 246, 0.4);
 }
+
+/* ===== PRINT STYLES FOR PDF GENERATION ===== */
+@media print {
+  @page {
+    margin: 1cm;
+    size: auto;
+  }
+
+  body {
+    background: white !important;
+    background-image: none !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .no-print,
+  .navbar,
+  .glass-card,
+  button {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    left: 0 !important;
+    top: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    color: black !important;
+  }
+
+  /* Make sure printing area text is dark */
+  .print-only * {
+    color: black !important;
+    text-shadow: none !important;
+    background: transparent !important;
+  }
+
+  /* Retain specific background colors for tables if needed */
+  .table-print th,
+  .table-print td {
+    border: 1px solid #ddd !important;
+  }
+}
