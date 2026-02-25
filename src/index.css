@@ -1048,25 +1048,40 @@ button:disabled {
 /* ===== PRINT STYLES FOR PDF GENERATION ===== */
 @media print {
   @page {
-    margin: 1cm;
+    margin: 10mm;
     size: auto;
   }
 
+  html,
   body {
     background: white !important;
     background-image: none !important;
     color: black !important;
     margin: 0 !important;
     padding: 0 !important;
+    min-height: auto !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
+  /* Hide absolutely everything related to the app UI */
   .no-print,
   .navbar,
+  .nav-tabs,
+  .title-section,
+  .step-indicator,
+  .two-column-grid,
+  .action-row,
+  footer,
+  .ss-options,
+  .ss-backdrop,
+  .match-status,
   .glass-card button,
   .results-section button {
     display: none !important;
   }
 
+  /* Make sure printing area text is dark */
   .print-only * {
     color: black !important;
     text-shadow: none !important;
@@ -1103,7 +1118,17 @@ button:disabled {
   }
 
   /* Specific overrides for Porutham Result expansion */
-  .results-section,
+  .results-section {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    border: 2px solid #333 !important;
+    padding: 20px !important;
+    border-radius: 8px !important;
+    margin: 0 !important;
+  }
+
   .results-section * {
     overflow: visible !important;
     height: auto !important;
@@ -1115,11 +1140,12 @@ button:disabled {
     display: block !important;
     page-break-inside: avoid;
     break-inside: avoid;
-    border: 1px solid #ccc !important;
+    border: 1px solid #aaa !important;
     background: white !important;
     color: black !important;
     box-shadow: none !important;
     margin-bottom: 20px !important;
+    padding: 15px !important;
   }
 
   .results-section .glass-card *,
