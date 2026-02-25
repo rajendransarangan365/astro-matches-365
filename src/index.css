@@ -1062,9 +1062,41 @@ button:disabled {
 
   .no-print,
   .navbar,
-  .glass-card,
-  button {
+  .glass-card button,
+  .results-section button {
     display: none !important;
+  }
+
+  /* Make sure printing area text is dark */
+  .print-only * {
+    color: black !important;
+    text-shadow: none !important;
+    background: transparent !important;
+  }
+
+  /* Specific overrides for Porutham Result expansion */
+  .results-section,
+  .results-section * {
+    overflow: visible !important;
+    height: auto !important;
+    opacity: 1 !important;
+  }
+
+  .results-section .glass-card,
+  .results-section .printable-card {
+    display: block !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border: 1px solid #ccc !important;
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    margin-bottom: 20px !important;
+  }
+
+  .results-section .glass-card *,
+  .results-section .printable-card * {
+    color: black !important;
   }
 
   .print-only {
@@ -1078,13 +1110,6 @@ button:disabled {
     opacity: 1 !important;
     visibility: visible !important;
     color: black !important;
-  }
-
-  /* Make sure printing area text is dark */
-  .print-only * {
-    color: black !important;
-    text-shadow: none !important;
-    background: transparent !important;
   }
 
   /* Retain specific background colors for tables if needed */
