@@ -47,7 +47,30 @@ function App() {
       {/* Modern Navbar */}
       <nav className="navbar">
         <div className="nav-container">
-          %SAME%
+          <div className="nav-profile-group">
+            <button
+              className="nav-brand"
+              onClick={() => setIsProfileModalOpen(true)}
+              style={{
+                background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+                display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem',
+                borderRadius: '0.5rem', transition: 'background 0.2s', outline: 'none'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <div style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '0.4rem', borderRadius: '50%', display: 'flex' }}>
+                <User size={16} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1 }}>வணக்கம்,</span>
+                <strong style={{ fontSize: '0.85rem', lineHeight: 1.2, maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</strong>
+              </div>
+            </button>
+            <button className="nav-icon-btn danger" onClick={logout} title="Logout">
+              <LogOut size={16} />
+            </button>
+          </div>
 
           {/* Page Tabs - Dynamic Pill Style */}
           <div className="nav-tabs">
