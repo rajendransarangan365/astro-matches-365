@@ -24,7 +24,7 @@ function App() {
   const [brideData, setBrideData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
   const [groomData, setGroomData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
 
-  const { savedBrides, savedGrooms, profileSaveStatus, handleSaveProfile } = useProfiles(token);
+  const { savedBrides, savedGrooms, profileSaveStatus, handleSaveProfile, handleDeleteProfile } = useProfiles(token);
   const { savedMatches, fetchMatches } = useMatches(token);
   const { result, saveStatus, handleCalculate, handleSaveMatch } = usePorutham(token, brideData, groomData);
 
@@ -146,6 +146,7 @@ function App() {
               type="bride"
               profiles={savedBrides}
               onSaveProfile={handleSaveProfile}
+              onDeleteProfile={handleDeleteProfile}
               saveStatus={profileSaveStatus.type === 'bride' ? profileSaveStatus.status : null}
             />
 
@@ -156,6 +157,7 @@ function App() {
               type="groom"
               profiles={savedGrooms}
               onSaveProfile={handleSaveProfile}
+              onDeleteProfile={handleDeleteProfile}
               saveStatus={profileSaveStatus.type === 'groom' ? profileSaveStatus.status : null}
             />
           </div>

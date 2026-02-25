@@ -17,7 +17,7 @@ const CITIES = [
 
 const CITY_OPTIONS = CITIES.map(c => ({ value: c, label: c }));
 
-const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile, saveStatus }) => {
+const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile, onDeleteProfile, saveStatus }) => {
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [calculating, setCalculating] = useState(false);
 
@@ -96,6 +96,7 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
                         }}
                         placeholder="-- சேமிக்கப்பட்ட தகவல் தேடு --"
                         icon={<Download size={14} />}
+                        onDelete={onDeleteProfile}
                     />
                 </div>
             )}
@@ -225,6 +226,24 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
                             icon={<Star size={14} />}
                         />
                     </div>
+                </div>
+
+                {/* Auto Calculated Info Message */}
+                <div style={{
+                    marginTop: '1rem',
+                    padding: '0.6rem 0.75rem',
+                    background: 'rgba(56, 189, 248, 0.05)',
+                    border: '1px dashed rgba(56, 189, 248, 0.3)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '0.75rem',
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1.4,
+                    display: 'flex',
+                    gap: '0.5rem',
+                    alignItems: 'flex-start'
+                }}>
+                    <Sparkles size={14} style={{ color: '#38bdf8', flexShrink: 0, marginTop: '2px' }} />
+                    <span>இராசி, நட்சத்திரம் மற்றும் கட்டங்கள் கணினி மூலம் கணிக்கப்பட்டவை. உங்கள் தகவலுக்கு ஏற்ப இவற்றை நீங்கள் மாற்றிக்கொள்ளலாம். (Calculated based on your details, you may change them if needed.)</span>
                 </div>
 
                 {/* Collapsible Charts */}

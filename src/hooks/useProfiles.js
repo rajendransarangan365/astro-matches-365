@@ -42,10 +42,25 @@ export const useProfiles = (token) => {
         }
     };
 
+    const handleDeleteProfile = async (profileId) => {
+        if (!window.confirm("இந்த தகவலை அழிக்க விரும்புகிறீர்களா? (Are you sure you want to delete this profile?)")) {
+            return;
+        }
+        try {
+            await fetchWithToken(`/api/profiles/${profileId}`, token, {
+                method: 'DELETE'
+            });
+            fetchProfiles(); // Refresh the list
+        } catch (err) {
+            alert("இந்த தகவலை அழிப்பதில் பிழை: " + err.message);
+        }
+    };
+
     return {
         savedBrides,
         savedGrooms,
         profileSaveStatus,
-        handleSaveProfile
+        handleSaveProfile,
+        handleDeleteProfile
     };
 };

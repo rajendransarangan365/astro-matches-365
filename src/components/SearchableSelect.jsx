@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, ChevronDown, X, Check } from 'lucide-react';
+import { Search, ChevronDown, X, Check, Trash2 } from 'lucide-react';
 
-const SearchableSelect = ({ options, value, onChange, placeholder = 'தேர்ந்தெடுக்கவும்...', icon, emptyMessage = 'No results found' }) => {
+const SearchableSelect = ({ options, value, onChange, placeholder = 'தேர்ந்தெடுக்கவும்...', icon, emptyMessage = 'No results found', onDelete }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState('');
     const containerRef = useRef(null);
@@ -80,19 +80,55 @@ const SearchableSelect = ({ options, value, onChange, placeholder = 'தேர�
                             <div className="ss-empty">{emptyMessage}</div>
                         ) : (
                             filtered.map(opt => (
-                                <button
-                                    key={opt.value}
-                                    type="button"
-                                    className={`ss-option ${opt.value === value ? 'selected' : ''}`}
-                                    onClick={() => {
-                                        onChange(opt.value);
-                                        setIsOpen(false);
-                                        setSearch('');
-                                    }}
-                                >
-                                    <span className="ss-option-label">{opt.label}</span>
-                                    {opt.value === value && <Check size={14} className="ss-check" />}
-                                </button>
+                                <div key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', margin: '2px 0' }}>
+                                    <button
+                                        type="button"
+                                        className={`ss-option ${opt.value === value ? 'selected' : ''}`}
+                                        onClick={() => {
+                                            onChange(opt.value);
+                                            setIsOpen(false);
+                                            setSearch('');
+                                        }}
+                                        style={{ flex: 1, minWidth: 0, margin: 0, width: 'auto' }}
+                                    >
+                                        <span className="ss-option-label" title={opt.label}>{opt.label}</span>
+                                        {opt.value === value && <Check size={14} className="ss-check" />}
+                                    </button>
+                                    {onDelete && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onDelete(opt.value);
+                                            }}
+                                            style={{
+                                                flexShrink: 0,
+                                                width: 'auto',
+                                                background: 'transparent',
+                                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                                color: 'var(--danger, #ef4444)',
+                                                cursor: 'pointer',
+                                                padding: '0.45rem',
+                                                borderRadius: '0.4rem',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseOver={(e) => {
+                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                                                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                                            }}
+                                            onMouseOut={(e) => {
+                                                e.currentTarget.style.background = 'transparent';
+                                                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                                            }}
+                                            title="Delete Profile"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
+                                </div>
                             ))
                         )}
                     </div>

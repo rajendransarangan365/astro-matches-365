@@ -40,3 +40,23 @@ export const getProfiles = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+export const deleteProfile = async (req, res) => {
+    try {
+        const { profilesCollection } = await connectToDb();
+        const { id } = req.params;
+
+        const result = await profilesCollection.deleteOne({
+            _id: new ObjectId(id),
+            userId: new ObjectId(req.user.id)
+        });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: "Profile not found or not authorized" });
+        }
+
+        res.json({ message: "Profile deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
