@@ -137,9 +137,14 @@ body {
   color: var(--text-primary);
 }
 
+.nav-icon-btn.danger {
+  color: #ff6b6b;
+  background: rgba(239, 68, 68, 0.1);
+}
+
 .nav-icon-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ff4d4d;
 }
 
 /* Nav Tabs - Dynamic Pill Style */
