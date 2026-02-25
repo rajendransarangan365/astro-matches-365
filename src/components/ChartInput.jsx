@@ -154,7 +154,19 @@ const ChartInput = ({ title, chartData, onChange }) => {
 
     return (
         <div style={{ marginBottom: '1.5rem', width: '100%' }}>
-            <label style={{ justifyContent: 'center', marginBottom: '0.5rem', fontSize: '0.8rem' }}>{title}</label>
+            <label style={{
+                justifyContent: 'center',
+                marginBottom: '0.75rem',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                color: 'var(--primary-light)',
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                width: '100%',
+                display: 'flex'
+            }}>
+                {title}
+            </label>
             <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(4, 1fr)',
