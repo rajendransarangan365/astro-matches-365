@@ -3,6 +3,7 @@ import {
     registerUser,
     loginUser,
     getMe,
+    getUserSecurityDetails,
     getSecurityQuestion,
     verifySecurityAnswer,
     resetPassword,
@@ -15,6 +16,7 @@ const router = express.Router();
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.get('/me', protect, getMe);
+router.get('/security-details', protect, getUserSecurityDetails);
 router.put('/update-security', protect, updateSecurityDetails);
 
 // Password Reset Routes

@@ -8,9 +8,31 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
 
     const [securityQuestion, setSecurityQuestion] = useState(user?.securityQuestion || 'உங்களுக்கு பிடித்த செல்லப்பிராணியின் பெயர் என்ன?');
     const [securityAnswer, setSecurityAnswer] = useState('');
+    const [mobile, setMobile] = useState(user?.mobile || '');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+
+    React.useEffect(() => {
+        if (isOpen && token) {
+            const fetchSecurityDetails = async () => {
+                try {
+                    const response = await fetch('/api/auth/security-details', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.securityQuestion) {
+                            setSecurityQuestion(data.securityQuestion);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch security details", err);
+                }
+            };
+            fetchSecurityDetails();
+        }
+    }, [isOpen, token]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -25,7 +47,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ securityQuestion, securityAnswer })
+                body: JSON.stringify({ securityQuestion, securityAnswer, mobile })
             });
 
             const data = await response.json();
@@ -94,7 +116,19 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
 
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <div className="input-group">
-                                <label><ShieldQuestion size={14} /> புதிய பாதுகாப்பு கேள்வி</label>
+                                <label><User size={14} /> மொபைல் எண் (Mobile)</label>
+                                <input
+                                    type="tel"
+                                    placeholder="உங்கள் மொபைல் எண்"
+                                    value={mobile}
+                                    onChange={(e) => setMobile(e.target.value)}
+                                    required
+                                    style={{ padding: '0.75rem 1rem', fontSize: '0.9rem' }}
+                                />
+                            </div>
+
+                            <div className="input-group">
+                                <label><ShieldQuestion size={14} /> பாதுகாப்பு கேள்வி (Security Question)</label>
                                 <select
                                     value={securityQuestion}
                                     onChange={(e) => setSecurityQuestion(e.target.value)}

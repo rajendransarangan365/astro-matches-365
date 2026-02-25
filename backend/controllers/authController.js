@@ -97,6 +97,21 @@ export const getMe = async (req, res) => {
     }
 };
 
+export const getUserSecurityDetails = async (req, res) => {
+    try {
+        const { usersCollection } = await connectToDb();
+        const user = await usersCollection.findOne({ _id: new ObjectId(req.user._id) });
+
+        if (!user) {
+            return res.status(404).json({ message: 'பயனர் கிடைக்கவில்லை' });
+        }
+
+        res.json({ securityQuestion: user.securityQuestion || '' });
+    } catch (error) {
+        res.status(500).json({ message: 'சேவையக பிழை' });
+    }
+};
+
 export const getSecurityQuestion = async (req, res) => {
     try {
         const { identifier } = req.params;
@@ -189,7 +204,7 @@ export const resetPassword = async (req, res) => {
 
 export const updateSecurityDetails = async (req, res) => {
     try {
-        const { securityQuestion, securityAnswer } = req.body;
+        const { securityQuestion, securityAnswer, mobile } = req.body;
 
         if (!securityQuestion || !securityAnswer) {
             return res.status(400).json({ message: 'கேள்வி மற்றும் பதிலை அளிக்கவும்' });
@@ -197,14 +212,18 @@ export const updateSecurityDetails = async (req, res) => {
 
         const { usersCollection } = await connectToDb();
 
+        const updateData = {
+            securityQuestion,
+            securityAnswer: securityAnswer.toLowerCase().trim()
+        };
+
+        if (mobile) {
+            updateData.mobile = mobile.trim();
+        }
+
         const result = await usersCollection.updateOne(
             { _id: new ObjectId(req.user._id) },
-            {
-                $set: {
-                    securityQuestion,
-                    securityAnswer: securityAnswer.toLowerCase().trim()
-                }
-            }
+            { $set: updateData }
         );
 
         if (result.modifiedCount > 0 || result.matchedCount > 0) {
