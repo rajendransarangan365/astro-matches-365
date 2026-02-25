@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { STARS, RASIS } from '../data/poruthamData';
 import { User, Star, Moon, BarChart3, ChevronDown, ChevronUp, MapPin, Calendar, Clock, Sparkles, Save, Download } from 'lucide-react';
 import ChartInput from './ChartInput';
+import SearchableSelect from './SearchableSelect';
 import { calculateAstroDetails } from '../utils/astroUtils';
 
-// Cities available for birth place selection
 const CITIES = [
     "Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem",
     "Tirunelveli", "Vellore", "Thoothukudi", "Thanjavur", "Nagercoil",
@@ -15,17 +15,34 @@ const CITIES = [
     "Dharmapuri", "Kanchipuram", "Tiruppur"
 ];
 
+const CITY_OPTIONS = CITIES.map(c => ({ value: c, label: c }));
+
 const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile, saveStatus }) => {
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [calculating, setCalculating] = useState(false);
 
-    // Get selected star to filter Rasi dropdown
     const selectedStar = STARS.find(s => s.id === data.starId);
-
-    // Filter RASIS based on the selected star's mapping
     const availableRasis = selectedStar
         ? RASIS.filter(r => selectedStar.rasiMapping.some(rm => rm.rasiId === r.id))
         : RASIS;
+
+    const accentColor = type === 'bride' ? '#f472b6' : '#60a5fa';
+
+    // Build profile options for SearchableSelect
+    const profileOptions = profiles.map(p => ({
+        value: p._id,
+        label: `${p.profileData.name} ${p.profileData.dob ? `(${p.profileData.dob})` : ''} — ${p.profileData.birthPlace || ''}`
+    }));
+
+    // Build star options
+    const starOptions = STARS.map(s => ({ value: s.id, label: s.nameTamil }));
+
+    // Build rasi options
+    const rasiOptions = availableRasis.map(r => {
+        const padas = selectedStar ? selectedStar.rasiMapping.find(rm => rm.rasiId === r.id)?.padas : "";
+        const padaText = padas ? ` (பா ${padas})` : "";
+        return { value: r.id, label: `${r.nameTamil}${padaText}` };
+    });
 
     const handleCalculate = async () => {
         if (!data.dob || !data.birthTime || !data.birthPlace) {
@@ -57,38 +74,37 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
 
     return (
         <div className="glass-card">
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', color: type === 'bride' ? '#f472b6' : '#60a5fa' }}>
-                <User size={20} /> {title}
-            </h3>
+            {/* Header */}
+            <div className="person-header" style={{ color: accentColor }}>
+                <User size={18} /> {title}
+            </div>
 
+            {/* Quick Add */}
             {profiles && profiles.length > 0 && (
-                <div style={{ marginTop: '1rem', background: 'rgba(255,255,255,0.05)', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'block' }}>
-                        <Download size={12} style={{ display: 'inline', marginRight: '4px' }} /> விரைவாக சேர்க்க (Quick Add)
+                <div className="quick-add-section">
+                    <label>
+                        <Download size={10} /> Quick Add
                     </label>
-                    <select
-                        style={{ width: '100%', fontSize: '0.85rem', padding: '0.5rem' }}
-                        onChange={(e) => {
-                            const selectedProfile = profiles.find(p => p._id === e.target.value);
+                    <SearchableSelect
+                        options={profileOptions}
+                        value=""
+                        onChange={(val) => {
+                            const selectedProfile = profiles.find(p => p._id === val);
                             if (selectedProfile) {
                                 onChange({ ...selectedProfile.profileData });
                             }
                         }}
-                    >
-                        <option value="">-- சேமிக்கப்பட்டதைத் தேர்ந்தெடுக்கவும் --</option>
-                        {profiles.map(p => (
-                            <option key={p._id} value={p._id}>
-                                {p.profileData.name} {p.profileData.dob ? `(${p.profileData.dob})` : ''} - {p.profileData.birthPlace}
-                            </option>
-                        ))}
-                    </select>
+                        placeholder="-- சேமிக்கப்பட்ட தகவல் தேடு --"
+                        icon={<Download size={14} />}
+                    />
                 </div>
             )}
 
-            <div className="form-grid" style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
-                {/* 1. Name */}
-                <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-                    <label><User size={16} /> பெயர் (Name)</label>
+            {/* Form Fields */}
+            <div className="form-grid">
+                {/* Name */}
+                <div className="input-group">
+                    <label><User size={12} /> பெயர் (Name)</label>
                     <input
                         type="text"
                         placeholder="பெயர்"
@@ -97,60 +113,52 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
                     />
                 </div>
 
-                {/* 2. Birth Place - Dropdown + Manual Input */}
-                <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-                    <label><MapPin size={16} /> பிறந்த இடம் (Birth Place)</label>
-                    <select
-                        value={CITIES.includes(data.birthPlace) ? data.birthPlace : '__other__'}
-                        onChange={(e) => {
-                            if (e.target.value === '__other__') {
-                                onChange({ ...data, birthPlace: '' });
-                            } else {
-                                onChange({ ...data, birthPlace: e.target.value });
-                            }
-                        }}
-                    >
-                        <option value="">-- தேர்ந்தெடுக்கவும் --</option>
-                        {CITIES.map(city => (
-                            <option key={city} value={city}>{city}</option>
-                        ))}
-                        <option value="__other__">மற்றவை (Other)...</option>
-                    </select>
-                    {(!CITIES.includes(data.birthPlace) && data.birthPlace !== '' || data.birthPlace === '') && !CITIES.includes(data.birthPlace) && (
+                {/* Birth Place */}
+                <div className="input-group">
+                    <label><MapPin size={12} /> பிறந்த இடம் (Place)</label>
+                    <SearchableSelect
+                        options={CITY_OPTIONS}
+                        value={CITIES.includes(data.birthPlace) ? data.birthPlace : ''}
+                        onChange={(val) => onChange({ ...data, birthPlace: val })}
+                        placeholder="-- நகரத்தை தேடு --"
+                        icon={<MapPin size={14} />}
+                        emptyMessage="நகரம் கிடைக்கவில்லை"
+                    />
+                    {!CITIES.includes(data.birthPlace) && (
                         <input
                             type="text"
                             placeholder="ஊர் பெயர் (Type city name)"
                             value={data.birthPlace || ''}
                             onChange={(e) => onChange({ ...data, birthPlace: e.target.value })}
-                            style={{ marginTop: '0.5rem' }}
+                            style={{ marginTop: '0.375rem' }}
                         />
                     )}
                 </div>
 
-                {/* 3. DOB */}
-                <div className="input-group">
-                    <label><Calendar size={16} /> பிறந்த தேதி (DOB)</label>
-                    <input
-                        type="date"
-                        value={data.dob || ''}
-                        onChange={(e) => onChange({ ...data, dob: e.target.value })}
-                    />
-                </div>
-
-                {/* 4. Time with AM/PM */}
-                <div className="input-group">
-                    <label><Clock size={16} /> நேரம் (Time)</label>
-                    <div style={{ display: 'flex', gap: '0.25rem' }}>
+                {/* DOB + Time Row */}
+                <div className="date-time-row" style={{ gridColumn: '1 / -1' }}>
+                    <div className="input-group">
+                        <label><Calendar size={12} /> DOB</label>
+                        <input
+                            type="date"
+                            value={data.dob || ''}
+                            onChange={(e) => onChange({ ...data, dob: e.target.value })}
+                        />
+                    </div>
+                    <div className="input-group">
+                        <label><Clock size={12} /> Time</label>
                         <input
                             type="time"
-                            style={{ flex: 1 }}
                             value={data.birthTime || ''}
                             onChange={(e) => onChange({ ...data, birthTime: e.target.value })}
                         />
+                    </div>
+                    <div className="input-group">
+                        <label style={{ visibility: 'hidden' }}>AM</label>
                         <select
-                            style={{ width: '70px', padding: '0 0.5rem' }}
                             value={data.meridian || 'AM'}
                             onChange={(e) => onChange({ ...data, meridian: e.target.value })}
+                            style={{ width: '70px' }}
                         >
                             <option value="AM">AM</option>
                             <option value="PM">PM</option>
@@ -158,104 +166,86 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
                     </div>
                 </div>
 
-                {/* Calculate and Save Buttons */}
-                <div style={{ gridColumn: '1 / -1', marginTop: '0.5rem', display: 'flex', gap: '1rem' }}>
+                {/* Action Buttons */}
+                <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '0.5rem' }}>
                     <button
+                        className="btn-sm btn-outline"
                         onClick={handleCalculate}
                         disabled={calculating}
-                        style={{ flex: 1, background: 'rgba(168, 85, 247, 0.1)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.2)', width: '100%', fontSize: '0.85rem' }}
+                        style={{ flex: 1, color: accentColor, borderColor: `${accentColor}30` }}
                     >
-                        {calculating ? 'கணக்கிடப்படுகிறது...' : <><Sparkles size={16} /> ஜாதகம் கணக்கிடு</>}
+                        {calculating ? '...' : <><Sparkles size={14} /> ஜாதகம் கணக்கிடு</>}
                     </button>
                     {onSaveProfile && (
                         <button
+                            className="btn-sm btn-outline"
                             onClick={() => onSaveProfile(type, data)}
                             disabled={saveStatus === 'saving'}
-                            style={{ flex: 1, background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.2)', width: '100%', fontSize: '0.85rem' }}
+                            style={{ flex: 1 }}
                         >
-                            {saveStatus === 'saving' ? 'சேமிக்கிறது...' : <><Save size={16} /> சேமிக்க (Save)</>}
+                            {saveStatus === 'saving' ? '...' : <><Save size={14} /> சேமிக்க</>}
                         </button>
                     )}
                 </div>
             </div>
 
-            <div style={{ marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+            {/* Rasi & Star Section */}
+            <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                <div className="rasi-star-row">
                     <div className="input-group">
-                        <label><Moon size={16} /> இராசி (Rasi)</label>
-                        <select
+                        <label><Moon size={12} /> இராசி (Rasi)</label>
+                        <SearchableSelect
+                            options={rasiOptions}
                             value={data.rasiId}
-                            onChange={(e) => onChange({ ...data, rasiId: parseInt(e.target.value) || '' })}
-                        >
-                            <option value="">தேர்ந்தெடுக்கவும்</option>
-                            {availableRasis.map(r => {
-                                // Find exactly which padas belong to this Rasi
-                                const padas = selectedStar ? selectedStar.rasiMapping.find(rm => rm.rasiId === r.id)?.padas : "";
-                                const padaText = padas ? ` (பாதம் ${padas})` : "";
-                                return (
-                                    <option key={r.id} value={r.id}>{r.nameTamil}{padaText}</option>
-                                );
-                            })}
-                        </select>
+                            onChange={(val) => onChange({ ...data, rasiId: val })}
+                            placeholder="இராசி தேர்ந்தெடுக்கவும்"
+                            icon={<Moon size={14} />}
+                        />
                     </div>
 
                     <div className="input-group">
-                        <label><Star size={16} /> நட்சத்திரம் (Star)</label>
-                        <select
+                        <label><Star size={12} /> நட்சத்திரம் (Star)</label>
+                        <SearchableSelect
+                            options={starOptions}
                             value={data.starId}
-                            onChange={(e) => {
-                                const starId = parseInt(e.target.value) || '';
+                            onChange={(val) => {
+                                const starId = val;
                                 const newStar = STARS.find(s => s.id === starId);
-
-                                // Auto-select Rasi if the star perfectly maps to exactly one Rasi
                                 let newRasiId = data.rasiId;
                                 if (newStar) {
                                     if (newStar.rasiMapping.length === 1) {
-                                        newRasiId = newStar.rasiMapping[0].rasiId; // Auto-select
+                                        newRasiId = newStar.rasiMapping[0].rasiId;
                                     } else if (!newStar.rasiMapping.some(rm => rm.rasiId === data.rasiId)) {
-                                        newRasiId = ''; // Clear Rasi if current Rasi is invalid for new Star
+                                        newRasiId = '';
                                     }
                                 }
-
                                 onChange({ ...data, starId, rasiId: newRasiId });
                             }}
-                        >
-                            <option value="">தேர்ந்தெடுக்கவும்</option>
-                            {STARS.map(s => (
-                                <option key={s.id} value={s.id}>{s.nameTamil}</option>
-                            ))}
-                        </select>
+                            placeholder="நட்சத்திரம் தேர்ந்தெடுக்கவும்"
+                            icon={<Star size={14} />}
+                        />
                     </div>
                 </div>
 
+                {/* Collapsible Charts */}
                 <button
+                    className="collapsible-toggle"
                     onClick={() => setShowAdvanced(!showAdvanced)}
-                    style={{
-                        background: 'transparent',
-                        color: 'var(--text-secondary)',
-                        fontSize: '0.8rem',
-                        border: '1px solid var(--glass-border)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        width: 'auto',
-                        padding: '0.5rem 1rem',
-                        margin: '0 auto'
-                    }}
                 >
-                    <BarChart3 size={14} /> கட்டங்கள் சரிபார்க்க (Verify Charts) {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    <BarChart3 size={14} />
+                    {showAdvanced ? 'Charts மறை' : 'Charts காட்டு'}
+                    {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 </button>
 
                 {showAdvanced && (
-                    <div style={{ marginTop: '1.5rem' }}>
+                    <div className="chart-container" style={{ animation: 'fadeIn 0.3s ease' }}>
                         <ChartInput
-                            title="ராசிக் கட்டம் - கிரகங்கள் (Rasi Chart)"
+                            title="ராசிக் கட்டம் (Rasi Chart)"
                             chartData={data.rasiChart || {}}
                             onChange={(val) => onChange({ ...data, rasiChart: val })}
                         />
                         <ChartInput
-                            title="நவாம்சம் - கிரகங்கள் (Navamsam)"
+                            title="நவாம்சம் (Navamsam)"
                             chartData={data.navamsamChart || {}}
                             onChange={(val) => onChange({ ...data, navamsamChart: val })}
                         />

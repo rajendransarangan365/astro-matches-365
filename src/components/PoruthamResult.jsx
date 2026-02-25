@@ -164,21 +164,108 @@ const PoruthamResult = ({ data }) => {
                                         <Sparkles size={20} color="#c084fc" /> ஜாதகப் பலன் & அறிக்கை
                                     </h3>
 
-                                    {summaryReport.lifeSummary && (
-                                        <div style={{
-                                            lineHeight: '1.8',
-                                            fontSize: '0.95rem',
-                                            color: '#e2e8f0',
-                                            whiteSpace: 'pre-wrap',
-                                            background: 'rgba(0,0,0,0.2)',
-                                            padding: '1.5rem',
-                                            borderRadius: '1rem',
-                                            marginBottom: '1.5rem',
-                                            borderLeft: '4px solid #c084fc'
-                                        }}>
-                                            {summaryReport.lifeSummary}
-                                        </div>
-                                    )}
+                                    {summaryReport.lifeSummary && (() => {
+                                        // Simple markdown-like parser for the life summary
+                                        const lines = summaryReport.lifeSummary.split('\n').filter(l => l.trim());
+                                        const elements = [];
+                                        let key = 0;
+
+                                        lines.forEach(line => {
+                                            const trimmed = line.trim();
+                                            if (trimmed.startsWith('## ')) {
+                                                // Major section header
+                                                elements.push(
+                                                    <h3 key={key++} style={{
+                                                        color: '#c084fc',
+                                                        fontSize: '1.1rem',
+                                                        fontWeight: 'bold',
+                                                        marginTop: elements.length > 0 ? '2rem' : '0.5rem',
+                                                        marginBottom: '0.75rem',
+                                                        paddingBottom: '0.5rem',
+                                                        borderBottom: '1px solid rgba(168, 85, 247, 0.3)',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.5rem'
+                                                    }}>
+                                                        {trimmed.replace('## ', '')}
+                                                    </h3>
+                                                );
+                                            } else if (trimmed.startsWith('### ')) {
+                                                // Sub-section header
+                                                elements.push(
+                                                    <h4 key={key++} style={{
+                                                        color: '#fbbf24',
+                                                        fontSize: '0.95rem',
+                                                        fontWeight: 'bold',
+                                                        marginTop: '1.5rem',
+                                                        marginBottom: '0.5rem'
+                                                    }}>
+                                                        {trimmed.replace('### ', '')}
+                                                    </h4>
+                                                );
+                                            } else if (trimmed.startsWith('⛔') || trimmed.startsWith('🚨')) {
+                                                // Danger/warning block
+                                                elements.push(
+                                                    <div key={key++} style={{
+                                                        background: 'rgba(239, 68, 68, 0.1)',
+                                                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                                                        borderRadius: '0.75rem',
+                                                        padding: '1rem',
+                                                        marginBottom: '0.75rem',
+                                                        fontSize: '0.9rem',
+                                                        lineHeight: '1.7',
+                                                        color: '#fca5a5'
+                                                    }} dangerouslySetInnerHTML={{ __html: trimmed.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #f87171">$1</strong>') }} />
+                                                );
+                                            } else if (trimmed.startsWith('✅') && trimmed.includes('திருமணம்')) {
+                                                // Success verdict block
+                                                elements.push(
+                                                    <div key={key++} style={{
+                                                        background: 'rgba(74, 222, 128, 0.1)',
+                                                        border: '1px solid rgba(74, 222, 128, 0.3)',
+                                                        borderRadius: '0.75rem',
+                                                        padding: '1rem',
+                                                        marginBottom: '0.75rem',
+                                                        fontSize: '0.9rem',
+                                                        lineHeight: '1.7',
+                                                        color: '#86efac'
+                                                    }} dangerouslySetInnerHTML={{ __html: trimmed.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #4ade80">$1</strong>') }} />
+                                                );
+                                            } else if (trimmed.startsWith('🟡') || trimmed.startsWith('⚠️')) {
+                                                // Warning block
+                                                elements.push(
+                                                    <div key={key++} style={{
+                                                        background: 'rgba(251, 191, 36, 0.08)',
+                                                        border: '1px solid rgba(251, 191, 36, 0.25)',
+                                                        borderRadius: '0.75rem',
+                                                        padding: '1rem',
+                                                        marginBottom: '0.75rem',
+                                                        fontSize: '0.9rem',
+                                                        lineHeight: '1.7',
+                                                        color: '#fde68a'
+                                                    }} dangerouslySetInnerHTML={{ __html: trimmed.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #fbbf24">$1</strong>') }} />
+                                                );
+                                            } else {
+                                                // Normal paragraph with bold support
+                                                const isRemedy = trimmed.match(/^[🔱🪔🐄🙏🔴💎⚖️🛡️🪷✅]/u);
+                                                elements.push(
+                                                    <p key={key++} style={{
+                                                        fontSize: '0.9rem',
+                                                        lineHeight: '1.8',
+                                                        color: '#cbd5e1',
+                                                        marginBottom: '0.5rem',
+                                                        paddingLeft: isRemedy ? '0.5rem' : '0',
+                                                        borderLeft: isRemedy ? '3px solid rgba(168, 85, 247, 0.3)' : 'none',
+                                                        paddingTop: isRemedy ? '0.25rem' : '0',
+                                                        paddingBottom: isRemedy ? '0.25rem' : '0',
+                                                        whiteSpace: 'pre-wrap'
+                                                    }} dangerouslySetInnerHTML={{ __html: trimmed.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #e2e8f0">$1</strong>') }} />
+                                                );
+                                            }
+                                        });
+
+                                        return <div>{elements}</div>;
+                                    })()}
 
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                         <div>

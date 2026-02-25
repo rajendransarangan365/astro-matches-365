@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import PersonForm from './components/PersonForm';
 import PoruthamResult from './components/PoruthamResult';
-import { Heart, Sparkles, LogOut, Save, CheckCircle2, History } from 'lucide-react';
+import JathagamCalculator from './components/JathagamCalculator';
+import MatchFinder from './components/MatchFinder';
+import { Heart, Sparkles, LogOut, Save, CheckCircle2, History, User, Calculator, HeartHandshake, Search } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
@@ -13,8 +15,8 @@ import Dashboard from './components/Dashboard';
 
 function App() {
   const { user, token, logout, isAuthenticated, loading } = useAuth();
-  const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
-  const [showDashboard, setShowDashboard] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
+  const [activePage, setActivePage] = useState('matching'); // 'matching', 'jathagam', 'matches', 'dashboard'
 
   const [brideData, setBrideData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
   const [groomData, setGroomData] = useState({ name: '', starId: '', rasiId: '', rasiChart: {}, navamsamChart: {}, birthPlace: '', birthTime: '', dob: '', meridian: 'AM' });
@@ -23,7 +25,7 @@ function App() {
   const { savedMatches, fetchMatches } = useMatches(token);
   const { result, saveStatus, handleCalculate, handleSaveMatch } = usePorutham(token, brideData, groomData);
 
-  if (loading) return <div className="container">Loading...</div>;
+  if (loading) return <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', color: 'var(--text-muted)' }}>Loading...</div>;
 
   if (!isAuthenticated) {
     return authMode === 'login' ? (
@@ -34,100 +36,147 @@ function App() {
   }
 
   return (
-    <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-          வணக்கம், <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{user?.name}</span>
+    <>
+      {/* Modern Navbar */}
+      <nav className="navbar">
+        <div className="nav-brand">
+          <span>வணக்கம்,</span>
+          <strong>{user?.name}</strong>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        {/* Page Tabs */}
+        <div className="nav-tabs">
           <button
-            onClick={() => {
-              if (!showDashboard) fetchMatches();
-              setShowDashboard(!showDashboard);
-            }}
-            style={{ width: 'auto', padding: '0.5rem 1rem', background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.2)', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            className={`nav-tab ${activePage === 'matching' ? 'active' : ''}`}
+            onClick={() => setActivePage('matching')}
           >
-            <History size={14} /> டிராக்கிங் டேஷ்போர்டு (Dashboard)
+            <HeartHandshake size={14} /> பொருத்தம்
           </button>
-
-          <button onClick={logout} style={{ width: 'auto', padding: '0.5rem 1rem', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.2)', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <LogOut size={14} /> வெளியேறு (Logout)
+          <button
+            className={`nav-tab ${activePage === 'jathagam' ? 'active' : ''}`}
+            onClick={() => setActivePage('jathagam')}
+          >
+            <Calculator size={14} /> ஜாதகம்
+          </button>
+          <button
+            className={`nav-tab ${activePage === 'matches' ? 'active' : ''}`}
+            onClick={() => setActivePage('matches')}
+          >
+            <Search size={14} /> தேடல்
+          </button>
+          <button
+            className={`nav-tab ${activePage === 'dashboard' ? 'active' : ''}`}
+            onClick={() => {
+              if (activePage !== 'dashboard') fetchMatches();
+              setActivePage('dashboard');
+            }}
+          >
+            <History size={14} /> Dashboard
           </button>
         </div>
-      </div>
 
-      {!showDashboard && (
-        <div className="title-section">
-          <h1>திருமணப் பொருத்தம்</h1>
-          <p>Tamil Marriage Compatibility Matching</p>
+        <div className="nav-actions">
+          <button className="nav-btn danger" onClick={logout}>
+            <LogOut size={14} /> Logout
+          </button>
         </div>
-      )}
+      </nav>
 
-      {showDashboard ? (
-        <Dashboard
-          savedBrides={savedBrides}
-          savedGrooms={savedGrooms}
-          savedMatches={savedMatches}
-          onBack={() => setShowDashboard(false)}
-        />
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <PersonForm
-            title="பெண் (Bride)"
-            data={brideData}
-            onChange={setBrideData}
-            type="bride"
-            profiles={savedBrides}
-            onSaveProfile={handleSaveProfile}
-            saveStatus={profileSaveStatus.type === 'bride' ? profileSaveStatus.status : null}
+      {/* Page Content */}
+      {activePage === 'jathagam' ? (
+        <JathagamCalculator />
+      ) : activePage === 'matches' ? (
+        <div className="container">
+          <MatchFinder />
+        </div>
+      ) : activePage === 'dashboard' ? (
+        <div className="container">
+          <Dashboard
+            savedBrides={savedBrides}
+            savedGrooms={savedGrooms}
+            savedMatches={savedMatches}
+            onBack={() => setActivePage('matching')}
           />
-
-          <div style={{ display: 'flex', justifyContent: 'center', opacity: 0.5 }}>
-            <Heart size={32} />
+        </div>
+      ) : (
+        <div className="container">
+          <div className="title-section">
+            <h1>திருமணப் பொருத்தம்</h1>
+            <p>Tamil Marriage Compatibility Matching</p>
           </div>
 
-          <PersonForm
-            title="ஆண் (Groom)"
-            data={groomData}
-            onChange={setGroomData}
-            type="groom"
-            profiles={savedGrooms}
-            onSaveProfile={handleSaveProfile}
-            saveStatus={profileSaveStatus.type === 'groom' ? profileSaveStatus.status : null}
-          />
+          {/* Step Indicator */}
+          <div className="step-indicator">
+            <div className={`step-dot ${!result ? 'active' : 'completed'}`}>
+              {result ? '✓' : '1'}
+            </div>
+            <div className={`step-line ${result ? 'active' : ''}`}></div>
+            <div className={`step-dot ${result ? 'active' : ''}`}>
+              2
+            </div>
+          </div>
 
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <button onClick={handleCalculate} style={{ flex: 1 }}>
-              <Sparkles size={20} /> பொருத்தம் பார்க்க (Check Match)
+          {/* Two-column Bride & Groom forms */}
+          <div className="two-column-grid">
+            <PersonForm
+              title="பெண் (Bride)"
+              data={brideData}
+              onChange={setBrideData}
+              type="bride"
+              profiles={savedBrides}
+              onSaveProfile={handleSaveProfile}
+              saveStatus={profileSaveStatus.type === 'bride' ? profileSaveStatus.status : null}
+            />
+
+            <PersonForm
+              title="ஆண் (Groom)"
+              data={groomData}
+              onChange={setGroomData}
+              type="groom"
+              profiles={savedGrooms}
+              onSaveProfile={handleSaveProfile}
+              saveStatus={profileSaveStatus.type === 'groom' ? profileSaveStatus.status : null}
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="action-row">
+            <button onClick={handleCalculate}>
+              <Sparkles size={18} /> பொருத்தம் பார்க்க (Check Match)
             </button>
 
             {result && (
               <button
+                className="btn-outline"
                 onClick={handleSaveMatch}
                 disabled={saveStatus === 'saving'}
                 style={{
-                  flex: 1,
-                  background: saveStatus === 'success' ? '#4ade80' : 'rgba(251, 191, 36, 0.1)',
-                  color: saveStatus === 'success' ? 'black' : 'var(--primary)',
-                  border: '1px solid var(--primary)'
+                  ...(saveStatus === 'success' && {
+                    background: 'rgba(52, 211, 153, 0.1)',
+                    borderColor: 'rgba(52, 211, 153, 0.3)',
+                    color: 'var(--success)'
+                  })
                 }}
               >
                 {saveStatus === 'saving' ? 'சேமிக்கப்படுகிறது...' :
-                  saveStatus === 'success' ? <><CheckCircle2 size={20} /> சேமிக்கப்பட்டது</> :
-                    <><Save size={20} /> விவரங்களைச் சேமி (Save Details)</>}
+                  saveStatus === 'success' ? <><CheckCircle2 size={18} /> சேமிக்கப்பட்டது</> :
+                    <><Save size={18} /> சேமி (Save)</>}
               </button>
             )}
           </div>
 
-          {result && <PoruthamResult data={result} />}
+          {result && (
+            <div style={{ marginTop: '2rem' }}>
+              <PoruthamResult data={result} />
+            </div>
+          )}
+
+          <footer style={{ marginTop: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.75rem', paddingBottom: '1rem' }}>
+            <p>© 2026 Tamil Marriage Matching • Made with ❤️</p>
+          </footer>
         </div>
       )}
-
-      <footer style={{ marginTop: '3rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-        <p>© 2026 Tamil Marriage Matching • Made with ❤️</p>
-      </footer>
-    </div>
+    </>
   );
 }
 

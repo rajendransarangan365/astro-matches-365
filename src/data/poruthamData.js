@@ -78,3 +78,50 @@ export const PLANETS = [
   { id: "Ke", nameTamil: "கேது", nameTamilShort: "கே", nameEnglish: "Ketu", libName: "Ketu", altNames: "கேது / சிகி / Ketu / Sikhi" },
   { id: "La", nameTamil: "லக்கினம்", nameTamilShort: "லக்", nameEnglish: "Lagnam", libName: "Lagnam", altNames: "லக்கினம் / உதயம் / Lagna / Ascendant" }
 ];
+
+// Vasya Porutham Data - Which Rasis are Vasya to which
+// Key = Rasi ID, Value = array of Rasi IDs that are Vasya (submissive/attracted) to it
+export const VASYA_DATA = {
+  1: [5, 8],       // Mesham -> Simham, Viruchigam
+  2: [4, 7],       // Rishabam -> Kadagam, Thulam
+  3: [6],          // Mithunam -> Kanni
+  4: [8, 6],       // Kadagam -> Viruchigam, Kanni
+  5: [7],          // Simmam -> Thulam
+  6: [3, 12],      // Kanni -> Mithunam, Meenam
+  7: [6],          // Thulam -> Kanni
+  8: [4],          // Viruchigam -> Kadagam
+  9: [12],         // Dhanusu -> Meenam
+  10: [11],        // Makaram -> Kumbam
+  11: [1],         // Kumbam -> Mesham
+  12: [10]         // Meenam -> Makaram
+};
+
+// Nadi classification for all 27 stars
+// Nadi: 1 = Vatha (வாதம்), 2 = Pitha (பித்தம்), 3 = Kapha (கபம்/சிலேத்துமம்)
+export const NADI_GROUPS = {
+  1: 1, 2: 2, 3: 3, 4: 1, 5: 2, 6: 3, 7: 1, 8: 2, 9: 3,    // Ashwini-Ashlesha
+  10: 1, 11: 2, 12: 3, 13: 1, 14: 2, 15: 3, 16: 1, 17: 2, 18: 3, // Magha-Jyeshtha
+  19: 1, 20: 2, 21: 3, 22: 1, 23: 2, 24: 3, 25: 1, 26: 2, 27: 3  // Mula-Revati
+};
+
+export const NADI_NAMES = {
+  1: "வாதம் (Vatha)",
+  2: "பித்தம் (Pitha)",
+  3: "கபம் (Kapha)"
+};
+
+// Rasi Characteristics for story generation
+export const RASI_CHARACTERISTICS = {
+  1: { trait: "தைரியமும் துணிச்சலும்", nature: "fire", positives: "முன்னோடி குணம், தலைமைப் பண்பு", challenges: "கோபம், அவசரம்" },
+  2: { trait: "நிதானமும் பொறுமையும்", nature: "earth", positives: "உறுதி, விசுவாசம், அமைதி", challenges: "பிடிவாதம், மாற்றத்தை ஏற்காத தன்மை" },
+  3: { trait: "புத்திசாலித்தனமும் பேச்சுத்திறனும்", nature: "air", positives: "சமூகத் திறமை, புத்திசாலித்தனம்", challenges: "இருமுகம், நிலையற்ற மனம்" },
+  4: { trait: "பாசமும் உணர்ச்சிவசமும்", nature: "water", positives: "குடும்ப பாசம், பராமரிப்பு குணம்", challenges: "அதிக உணர்ச்சி, சந்தேகம்" },
+  5: { trait: "கம்பீரமும் தன்னம்பிக்கையும்", nature: "fire", positives: "தலைமை, தாராள மனம், நேர்மை", challenges: "ஆணவம், பிறரை ஆதிக்கம் செய்தல்" },
+  6: { trait: "நுணுக்கமும் ஒழுங்கும்", nature: "earth", positives: "விவேகம், சேவை மனப்பான்மை", challenges: "அதிக எதிர்பார்ப்பு, குறை கண்டுபிடித்தல்" },
+  7: { trait: "சமநிலையும் நியாயமும்", nature: "air", positives: "சமநிலை, அழகு உணர்வு, ராஜதந்திரம்", challenges: "முடிவெடுக்க தாமதம், பிறர் ஒப்புதலுக்கு ஏங்குதல்" },
+  8: { trait: "ஆழமும் தீவிரமும்", nature: "water", positives: "ஆராய்ச்சி மனம், உறுதி, விசுவாசம்", challenges: "சந்தேகம், பழிவாங்கும் குணம்" },
+  9: { trait: "நம்பிக்கையும் தர்மமும்", nature: "fire", positives: "நேர்மை, ஆன்மிகம், உயர் சிந்தனை", challenges: "அதிக நம்பிக்கை, நிதானமின்மை" },
+  10: { trait: "கடின உழைப்பும் பொறுப்பும்", nature: "earth", positives: "ஒழுக்கம், விடாமுயற்சி, நடைமுறை அறிவு", challenges: "பயம், அதிக கட்டுப்பாடு" },
+  11: { trait: "சுதந்திரமும் புரட்சியும்", nature: "air", positives: "புதுமை, மனிதநேயம், புத்திசாலி", challenges: "உணர்ச்சியற்ற தன்மை, பிடிவாதம்" },
+  12: { trait: "கற்பனையும் ஆன்மிகமும்", nature: "water", positives: "கருணை, கலை உணர்வு, புரிந்துகொள்ளும் திறன்", challenges: "தப்பிக்கும் மனப்பான்மை, குழப்பம்" }
+};

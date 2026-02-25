@@ -17,7 +17,7 @@ const SignupPage = ({ onSwitch }) => {
         setLoading(true);
 
         try {
-            const response = await fetch('/api/auth/signup', {
+            const response = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password })
@@ -26,7 +26,8 @@ const SignupPage = ({ onSwitch }) => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Signup failed');
 
-            login(data.user, data.token);
+            const { token: userToken, ...userData } = data;
+            login(userData, userToken);
         } catch (err) {
             setError(err.message);
         } finally {

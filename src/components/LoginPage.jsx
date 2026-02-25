@@ -25,7 +25,8 @@ const LoginPage = ({ onSwitch }) => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Login failed');
 
-            login(data.user, data.token);
+            const { token: userToken, ...userData } = data;
+            login(userData, userToken);
         } catch (err) {
             setError(err.message);
         } finally {
