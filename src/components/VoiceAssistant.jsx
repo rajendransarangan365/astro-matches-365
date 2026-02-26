@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Mic, MicOff, Volume2, Square, Loader2, Sparkles, MessageCircle, AlertCircle, X, Wand2, Stars } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -369,281 +370,302 @@ const VoiceAssistant = ({ matchData }) => {
                 )}
             </AnimatePresence>
 
-            <AnimatePresence>
-                {isExpanded && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.9 }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="glass-card"
-                        style={{
-                            width: '100%',
-                            maxWidth: '350px',
-                            boxSizing: 'border-box',
-                            border: '1px solid var(--primary)',
-                            background: 'rgba(15, 23, 42, 0.95)',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.5), 0 0 20px rgba(168, 85, 247, 0.2)',
-                            backdropFilter: 'blur(12px)',
-                            pointerEvents: 'auto'
-                        }}
-                    >
-                        {/* Header row with title and close button */}
-                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#c084fc', fontSize: 'clamp(0.9rem, 3.5vw, 1.1rem)', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>
-                                <Wand2 size={18} style={{ flexShrink: 0 }} /> ஏஐ ஜோதிடர் (AI Astrologer)
-                            </h3>
-                            <motion.button
-                                whileHover={{ scale: 1.1, backgroundColor: 'rgba(239, 68, 68, 0.8)', borderColor: 'rgba(239, 68, 68, 1)' }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => setIsExpanded(false)}
-                                title="Close"
-                                aria-label="Close Voice Assistant"
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {isExpanded && (
+                        <div style={{
+                            position: 'fixed',
+                            inset: 0,
+                            zIndex: 999999,
+                            background: 'rgba(0, 0, 0, 0.85)',
+                            backdropFilter: 'blur(8px)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '1rem',
+                            paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))',
+                            paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))',
+                            boxSizing: 'border-box'
+                        }}>
+                            <motion.div
+                                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 30, scale: 0.95 }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                                className="glass-card"
                                 style={{
-                                    width: '36px',
-                                    minWidth: '36px',
-                                    height: '36px',
-                                    padding: 0,
-                                    margin: 0,
-                                    borderRadius: '50%',
+                                    width: '100%',
+                                    maxWidth: '500px',
+                                    maxHeight: '100%',
+                                    boxSizing: 'border-box',
+                                    border: '1px solid var(--primary)',
+                                    background: 'rgba(15, 23, 42, 0.95)',
+                                    position: 'relative',
+                                    overflowY: 'auto',
+                                    boxShadow: '0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(168, 85, 247, 0.3)',
+                                    borderRadius: '1.5rem',
+                                    pointerEvents: 'auto',
                                     display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    background: 'rgba(255, 255, 255, 0.15)',
-                                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    flexShrink: 0,
-                                    lineHeight: 0,
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                                    transition: 'background-color 0.2s, border-color 0.2s',
-                                    zIndex: 10
+                                    flexDirection: 'column'
                                 }}
                             >
-                                <X size={20} strokeWidth={2.5} />
-                            </motion.button>
-                        </div>
-
-                        {/* Ambient Background Glow when listening or processing */}
-                        <AnimatePresence>
-                            {(isListening || isProcessing || isSpeaking) && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    style={{
-                                        position: 'absolute',
-                                        inset: 0,
-                                        background: `radial-gradient(circle at center, ${isListening ? 'rgba(239, 68, 68, 0.15)' : isProcessing ? 'rgba(56, 189, 248, 0.15)' : 'rgba(168, 85, 247, 0.15)'} 0%, transparent 70%)`,
-                                        pointerEvents: 'none'
-                                    }}
-                                />
-                            )}
-                        </AnimatePresence>
-
-                        <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '1.25rem', wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: 1.5 }}>
-                            இந்தப் பொருத்தம் குறித்து உங்களுக்கு ஏதேனும் சந்தேகம் உள்ளதா? மைக்கை அழுத்தித் தமிழில் கேட்கவும்.
-                        </p>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
-
-                            {/* Visualizer / Transcript Area */}
-                            <div style={{
-                                width: '100%',
-                                minHeight: '120px',
-                                background: 'rgba(0,0,0,0.3)',
-                                borderRadius: '1rem',
-                                padding: '1.5rem',
-                                border: '1px solid rgba(255,255,255,0.05)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                textAlign: 'center',
-                                position: 'relative',
-                                overflow: 'hidden'
-                            }}>
-
-                                {/* Modern Visualizer Animation */}
-                                <AnimatePresence>
-                                    {(isListening || isProcessing || isSpeaking) && (
-                                        <motion.div
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: '60px' }}
-                                            exit={{ opacity: 0, height: 0 }}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '6px',
-                                                marginBottom: '1rem',
-                                                width: '100%'
-                                            }}
-                                        >
-                                            {[...Array(10)].map((_, i) => (
-                                                <motion.div
-                                                    key={i}
-                                                    animate={{
-                                                        height: isProcessing ? ['20%', '80%', '20%'] :
-                                                            isSpeaking ? ['20%', `${Math.random() * 60 + 40}%`, '20%'] :
-                                                                isListening ? ['10%', `${Math.random() * 80 + 20}%`, '10%'] : '10%',
-                                                    }}
-                                                    transition={{
-                                                        repeat: Infinity,
-                                                        duration: isProcessing ? 1.5 : isSpeaking ? 0.3 + Math.random() * 0.2 : 0.4 + Math.random() * 0.3,
-                                                        delay: i * 0.05,
-                                                        ease: "easeInOut"
-                                                    }}
-                                                    style={{
-                                                        width: '8px',
-                                                        borderRadius: '4px',
-                                                        background: isListening ? '#38bdf8' : isProcessing ? '#c084fc' : '#34d399',
-                                                        boxShadow: `0 0 10px ${isListening ? '#38bdf8' : isProcessing ? '#c084fc' : '#34d399'}`
-                                                    }}
-                                                />
-                                            ))}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-
-                                {!transcript && !response && !error && !isListening && !isProcessing && (
-                                    <span style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.9rem' }}>
-                                        "இந்த ஜாதகத்தில் ரஜ்ஜுப் பொருத்தம் எப்படி உள்ளது?"
-                                    </span>
-                                )}
-
-                                {transcript && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 5 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        style={{ color: '#e2e8f0', fontSize: '1rem', marginBottom: response ? '1rem' : '0', zIndex: 2 }}
-                                    >
-                                        "{transcript}"
-                                    </motion.div>
-                                )}
-
-                                {error && (
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        style={{ color: '#f87171', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 2 }}
-                                    >
-                                        <AlertCircle size={16} /> {error}
-                                    </motion.div>
-                                )}
-
-                                {isProcessing && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#c084fc', fontSize: '0.95rem', zIndex: 2 }}>
-                                        <span>ஜோதிடர் ஆராய்கிறார்... (Analyzing)</span>
-                                    </div>
-                                )}
-
-                                {response && !isProcessing && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 5 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        style={{
-                                            color: '#c084fc',
-                                            fontSize: '0.95rem',
-                                            padding: '0.75rem',
-                                            background: 'rgba(168, 85, 247, 0.1)',
-                                            borderRadius: '0.5rem',
-                                            borderLeft: '3px solid #c084fc',
-                                            textAlign: 'left',
-                                            width: '100%',
-                                            boxSizing: 'border-box',
-                                            wordBreak: 'break-word',
-                                            overflowWrap: 'break-word',
-                                            display: 'flex',
-                                            gap: '0.75rem',
-                                            alignItems: 'flex-start'
-                                        }}
-                                    >
-                                        <MessageCircle size={20} style={{ flexShrink: 0, marginTop: '0.2rem' }} />
-                                        <div style={{ lineHeight: '1.6' }}>{response}</div>
-                                    </motion.div>
-                                )}
-                            </div>
-
-                            {/* Controls Area */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={toggleListening}
-                                    disabled={isProcessing || isSpeaking}
-                                    style={{
-                                        width: '4.5rem',
-                                        height: '4.5rem',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        background: isListening ? '#0f172a' : 'var(--primary)',
-                                        color: isListening ? '#38bdf8' : 'white',
-                                        cursor: (isProcessing || isSpeaking) ? 'not-allowed' : 'pointer',
-                                        opacity: (isProcessing || isSpeaking) ? 0.5 : 1,
-                                        boxShadow: isListening
-                                            ? '0 0 25px rgba(56, 189, 248, 0.5), inset 0 0 15px rgba(56, 189, 248, 0.3)'
-                                            : '0 0 15px rgba(168, 85, 247, 0.4)',
-                                        transition: 'all 0.3s ease',
-                                        border: isListening ? '2px solid rgba(56, 189, 248, 0.5)' : 'none'
-                                    }}
-                                >
-                                    {isListening ? <Mic size={32} /> : <Mic size={28} />}
-                                </motion.button>
-
-                                {isSpeaking && (
+                                {/* Header row with title and close button */}
+                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#c084fc', fontSize: 'clamp(0.9rem, 3.5vw, 1.1rem)', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>
+                                        <Wand2 size={18} style={{ flexShrink: 0 }} /> ஏஐ ஜோதிடர் (AI Astrologer)
+                                    </h3>
                                     <motion.button
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={stopSpeaking}
+                                        whileHover={{ scale: 1.1, backgroundColor: 'rgba(239, 68, 68, 0.8)', borderColor: 'rgba(239, 68, 68, 1)' }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => setIsExpanded(false)}
+                                        title="Close"
+                                        aria-label="Close Voice Assistant"
                                         style={{
-                                            width: '3rem',
-                                            height: '3rem',
+                                            width: '36px',
+                                            minWidth: '36px',
+                                            height: '36px',
+                                            padding: 0,
+                                            margin: 0,
                                             borderRadius: '50%',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            border: '1px solid #94a3b8',
-                                            background: 'rgba(255,255,255,0.1)',
-                                            color: '#cbd5e1',
+                                            background: 'rgba(255, 255, 255, 0.15)',
+                                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                                            color: 'white',
                                             cursor: 'pointer',
+                                            flexShrink: 0,
+                                            lineHeight: 0,
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                            transition: 'background-color 0.2s, border-color 0.2s',
+                                            zIndex: 10
                                         }}
-                                        title="Stop speaking"
                                     >
-                                        <Square size={18} fill="currentColor" />
+                                        <X size={20} strokeWidth={2.5} />
                                     </motion.button>
-                                )}
-                            </div>
+                                </div>
 
-                            {isListening && (
-                                <motion.div
-                                    animate={{ opacity: [0.5, 1, 0.5] }}
-                                    transition={{ repeat: Infinity, duration: 1.5 }}
-                                    style={{ color: '#38bdf8', fontSize: '0.85rem', fontWeight: '500', letterSpacing: '1px' }}
-                                >
-                                    பேசுங்கள்... (Speak now)
-                                </motion.div>
-                            )}
+                                {/* Ambient Background Glow when listening or processing */}
+                                <AnimatePresence>
+                                    {(isListening || isProcessing || isSpeaking) && (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            style={{
+                                                position: 'absolute',
+                                                inset: 0,
+                                                background: `radial-gradient(circle at center, ${isListening ? 'rgba(239, 68, 68, 0.15)' : isProcessing ? 'rgba(56, 189, 248, 0.15)' : 'rgba(168, 85, 247, 0.15)'} 0%, transparent 70%)`,
+                                                pointerEvents: 'none'
+                                            }}
+                                        />
+                                    )}
+                                </AnimatePresence>
 
-                            {isSpeaking && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#34d399', fontSize: '0.85rem', fontWeight: '500' }}
-                                >
-                                    <Volume2 size={16} /> ஜோதிடர் கூறுகிறார்...
-                                </motion.div>
-                            )}
+                                <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '1.25rem', wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: 1.5 }}>
+                                    இந்தப் பொருத்தம் குறித்து உங்களுக்கு ஏதேனும் சந்தேகம் உள்ளதா? மைக்கை அழுத்தித் தமிழில் கேட்கவும்.
+                                </p>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+
+                                    {/* Visualizer / Transcript Area */}
+                                    <div style={{
+                                        width: '100%',
+                                        minHeight: '120px',
+                                        background: 'rgba(0,0,0,0.3)',
+                                        borderRadius: '1rem',
+                                        padding: '1.5rem',
+                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        textAlign: 'center',
+                                        position: 'relative',
+                                        overflow: 'hidden'
+                                    }}>
+
+                                        {/* Modern Visualizer Animation */}
+                                        <AnimatePresence>
+                                            {(isListening || isProcessing || isSpeaking) && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: '60px' }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: '6px',
+                                                        marginBottom: '1rem',
+                                                        width: '100%'
+                                                    }}
+                                                >
+                                                    {[...Array(10)].map((_, i) => (
+                                                        <motion.div
+                                                            key={i}
+                                                            animate={{
+                                                                height: isProcessing ? ['20%', '80%', '20%'] :
+                                                                    isSpeaking ? ['20%', `${Math.random() * 60 + 40}%`, '20%'] :
+                                                                        isListening ? ['10%', `${Math.random() * 80 + 20}%`, '10%'] : '10%',
+                                                            }}
+                                                            transition={{
+                                                                repeat: Infinity,
+                                                                duration: isProcessing ? 1.5 : isSpeaking ? 0.3 + Math.random() * 0.2 : 0.4 + Math.random() * 0.3,
+                                                                delay: i * 0.05,
+                                                                ease: "easeInOut"
+                                                            }}
+                                                            style={{
+                                                                width: '8px',
+                                                                borderRadius: '4px',
+                                                                background: isListening ? '#38bdf8' : isProcessing ? '#c084fc' : '#34d399',
+                                                                boxShadow: `0 0 10px ${isListening ? '#38bdf8' : isProcessing ? '#c084fc' : '#34d399'}`
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        {!transcript && !response && !error && !isListening && !isProcessing && (
+                                            <span style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.9rem' }}>
+                                                "இந்த ஜாதகத்தில் ரஜ்ஜுப் பொருத்தம் எப்படி உள்ளது?"
+                                            </span>
+                                        )}
+
+                                        {transcript && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 5 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                style={{ color: '#e2e8f0', fontSize: '1rem', marginBottom: response ? '1rem' : '0', zIndex: 2 }}
+                                            >
+                                                "{transcript}"
+                                            </motion.div>
+                                        )}
+
+                                        {error && (
+                                            <motion.div
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                style={{ color: '#f87171', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 2 }}
+                                            >
+                                                <AlertCircle size={16} /> {error}
+                                            </motion.div>
+                                        )}
+
+                                        {isProcessing && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#c084fc', fontSize: '0.95rem', zIndex: 2 }}>
+                                                <span>ஜோதிடர் ஆராய்கிறார்... (Analyzing)</span>
+                                            </div>
+                                        )}
+
+                                        {response && !isProcessing && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 5 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                style={{
+                                                    color: '#c084fc',
+                                                    fontSize: '0.95rem',
+                                                    padding: '0.75rem',
+                                                    background: 'rgba(168, 85, 247, 0.1)',
+                                                    borderRadius: '0.5rem',
+                                                    borderLeft: '3px solid #c084fc',
+                                                    textAlign: 'left',
+                                                    width: '100%',
+                                                    boxSizing: 'border-box',
+                                                    wordBreak: 'break-word',
+                                                    overflowWrap: 'break-word',
+                                                    display: 'flex',
+                                                    gap: '0.75rem',
+                                                    alignItems: 'flex-start'
+                                                }}
+                                            >
+                                                <MessageCircle size={20} style={{ flexShrink: 0, marginTop: '0.2rem' }} />
+                                                <div style={{ lineHeight: '1.6' }}>{response}</div>
+                                            </motion.div>
+                                        )}
+                                    </div>
+
+                                    {/* Controls Area */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                        <motion.button
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={toggleListening}
+                                            disabled={isProcessing || isSpeaking}
+                                            style={{
+                                                width: '4.5rem',
+                                                height: '4.5rem',
+                                                borderRadius: '50%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                background: isListening ? '#0f172a' : 'var(--primary)',
+                                                color: isListening ? '#38bdf8' : 'white',
+                                                cursor: (isProcessing || isSpeaking) ? 'not-allowed' : 'pointer',
+                                                opacity: (isProcessing || isSpeaking) ? 0.5 : 1,
+                                                boxShadow: isListening
+                                                    ? '0 0 25px rgba(56, 189, 248, 0.5), inset 0 0 15px rgba(56, 189, 248, 0.3)'
+                                                    : '0 0 15px rgba(168, 85, 247, 0.4)',
+                                                transition: 'all 0.3s ease',
+                                                border: isListening ? '2px solid rgba(56, 189, 248, 0.5)' : 'none'
+                                            }}
+                                        >
+                                            {isListening ? <Mic size={32} /> : <Mic size={28} />}
+                                        </motion.button>
+
+                                        {isSpeaking && (
+                                            <motion.button
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={stopSpeaking}
+                                                style={{
+                                                    width: '3rem',
+                                                    height: '3rem',
+                                                    borderRadius: '50%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    border: '1px solid #94a3b8',
+                                                    background: 'rgba(255,255,255,0.1)',
+                                                    color: '#cbd5e1',
+                                                    cursor: 'pointer',
+                                                }}
+                                                title="Stop speaking"
+                                            >
+                                                <Square size={18} fill="currentColor" />
+                                            </motion.button>
+                                        )}
+                                    </div>
+
+                                    {isListening && (
+                                        <motion.div
+                                            animate={{ opacity: [0.5, 1, 0.5] }}
+                                            transition={{ repeat: Infinity, duration: 1.5 }}
+                                            style={{ color: '#38bdf8', fontSize: '0.85rem', fontWeight: '500', letterSpacing: '1px' }}
+                                        >
+                                            பேசுங்கள்... (Speak now)
+                                        </motion.div>
+                                    )}
+
+                                    {isSpeaking && (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#34d399', fontSize: '0.85rem', fontWeight: '500' }}
+                                        >
+                                            <Volume2 size={16} /> ஜோதிடர் கூறுகிறார்...
+                                        </motion.div>
+                                    )}
+                                </div>
+                            </motion.div>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 };
