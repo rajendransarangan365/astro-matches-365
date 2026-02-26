@@ -36,11 +36,11 @@ export const getCloudinaryUsage = async (req, res) => {
         // Here we focus on storage specifically if possible, or just send the whole result
         // In free tier, storage limit is typically 25 credits (1 credit = 1GB)
         res.json({
-            plan: result.plan,
-            usage: result.storage.usage || 0, // total storage used in bytes
-            limit: (result.credits.limit || 25) * 1024 * 1024 * 1024, // total storage limit (approx 1 credit = 1GB)
-            usedCredits: result.credits.usage,
-            totalCredits: result.credits.limit,
+            plan: result.plan || 'Free',
+            usage: (result.storage && result.storage.usage) || 0, // total storage used in bytes
+            limit: ((result.credits && result.credits.limit) || 25) * 1024 * 1024 * 1024, // approx 1GB per credit
+            usedCredits: (result.credits && result.credits.usage) || 0,
+            totalCredits: (result.credits && result.credits.limit) || 25,
         });
     } catch (error) {
         console.error('Cloudinary usage error:', error);
