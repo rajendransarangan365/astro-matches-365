@@ -17,10 +17,12 @@ const VoiceAssistant = ({ matchData }) => {
     const [response, setResponse] = useState('');
     const [error, setError] = useState(null);
     const [hasSupport, setHasSupport] = useState(true);
+    const [highlightIndices, setHighlightIndices] = useState({ start: 0, end: 0 });
 
     const recognitionRef = useRef(null);
     const synthesisRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
     const audioContextRef = useRef(null);
+    const responseScrollRef = useRef(null);
 
     // Helper to play simple synthesized tones
     const playTone = (frequency, duration, type = 'sine') => {
@@ -129,6 +131,7 @@ const VoiceAssistant = ({ matchData }) => {
             setIsSpeaking(false);
             setTranscript('');
             setResponse('');
+            setHighlightIndices({ start: 0, end: 0 });
             try {
                 playTone(600, 0.15); // High tone for starting
                 setTimeout(() => playTone(800, 0.2), 150); // Double chime effect
@@ -149,6 +152,7 @@ const VoiceAssistant = ({ matchData }) => {
             synthesisRef.current.cancel();
         }
         setIsSpeaking(false);
+        setHighlightIndices({ start: 0, end: 0 });
     };
 
     const handleAskAstrologer = async (questionText) => {
@@ -209,12 +213,43 @@ const VoiceAssistant = ({ matchData }) => {
             utterance.voice = targetVoice;
         }
 
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => setIsSpeaking(false);
+        utterance.onstart = () => {
+            setIsSpeaking(true);
+            setHighlightIndices({ start: 0, end: 0 });
+        };
+        utterance.onend = () => {
+            setIsSpeaking(false);
+            setHighlightIndices({ start: 0, end: 0 });
+        };
         utterance.onerror = (e) => {
             console.error('SpeechSynthesis Error:', e);
             setIsSpeaking(false);
+            setHighlightIndices({ start: 0, end: 0 });
             setError('குரல் பதிவில் பிழை. (Voice playback error)');
+        };
+        utterance.onboundary = (event) => {
+            if (event.name === 'word') {
+                const start = event.charIndex;
+                let end = start + (event.charLength || 0);
+
+                // Fallback if charLength is not natively supported by the browser's TTS engine
+                if (!event.charLength || event.charLength === 0) {
+                    const nextSpace = text.indexOf(' ', start);
+                    end = nextSpace === -1 ? text.length : nextSpace;
+                }
+
+                setHighlightIndices({ start, end });
+
+                // Scroll the highlighted word into view smoothly after a tiny delay to ensure React renders the span first
+                setTimeout(() => {
+                    if (responseScrollRef.current) {
+                        const highlightedElement = responseScrollRef.current.querySelector('.highlighted-word');
+                        if (highlightedElement) {
+                            highlightedElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    }
+                }, 10);
+            }
         };
 
         // Slow down slightly for clarity
@@ -271,104 +306,110 @@ const VoiceAssistant = ({ matchData }) => {
     }
 
     return (
-        <div style={{ position: 'fixed', bottom: '6.5rem', left: '1rem', right: '1rem', zIndex: 100, display: 'flex', justifyContent: 'flex-end', pointerEvents: 'none' }}>
-            <AnimatePresence>
-                {!isExpanded && (
-                    <motion.button
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{
-                            scale: 1,
-                            opacity: 1,
-                            y: [0, -10, 0]
-                        }}
-                        transition={{
-                            y: {
-                                duration: 3,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            },
-                            scale: { duration: 0.3 },
-                            opacity: { duration: 0.3 }
-                        }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => setIsExpanded(true)}
-                        style={{
-                            width: '4.5rem',
-                            height: '4.5rem',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: '2px solid rgba(245, 158, 11, 0.5)',
-                            background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-                            color: 'white',
-                            cursor: 'pointer',
-                            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.5), inset 0 2px 4px rgba(255,255,255,0.3), 0 0 15px rgba(168, 85, 247, 0.4)',
-                            pointerEvents: 'auto',
-                            position: 'relative',
-                            overflow: 'hidden'
-                        }}
-                    >
-                        {/* Internal Glow Effect */}
-                        <motion.div
+        <>
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {!isExpanded && (
+                        <motion.button
+                            initial={{ scale: 0, opacity: 0 }}
                             animate={{
-                                opacity: [0.3, 0.6, 0.3],
-                                scale: [1, 1.2, 1],
+                                scale: 1,
+                                opacity: 1,
+                                y: [0, -10, 0]
                             }}
                             transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            }}
-                            style={{
-                                position: 'absolute',
-                                width: '100%',
-                                height: '100%',
-                                background: 'radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%)',
-                                pointerEvents: 'none'
-                            }}
-                        />
-
-                        <div style={{ position: 'relative', zIndex: 1 }}>
-                            <motion.div
-                                animate={{
-                                    rotate: [0, 10, -10, 0],
-                                }}
-                                transition={{
-                                    duration: 4,
+                                y: {
+                                    duration: 3,
                                     repeat: Infinity,
                                     ease: "easeInOut"
-                                }}
-                            >
-                                <Wand2 size={32} />
-                            </motion.div>
-
+                                },
+                                scale: { duration: 0.3 },
+                                opacity: { duration: 0.3 }
+                            }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setIsExpanded(true)}
+                            style={{
+                                position: 'fixed',
+                                bottom: '6.5rem',
+                                right: '1.5rem',
+                                zIndex: 999998, // Ensure it's above other page content but below the modal
+                                width: '4.5rem',
+                                height: '4.5rem',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '2px solid rgba(245, 158, 11, 0.5)',
+                                background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                                color: 'white',
+                                cursor: 'pointer',
+                                boxShadow: '0 8px 32px rgba(99, 102, 241, 0.5), inset 0 2px 4px rgba(255,255,255,0.3), 0 0 15px rgba(168, 85, 247, 0.4)',
+                                pointerEvents: 'auto',
+                                overflow: 'hidden'
+                            }}
+                        >
+                            {/* Internal Glow Effect */}
                             <motion.div
                                 animate={{
-                                    opacity: [0, 1, 0],
-                                    scale: [0.5, 1, 0.5],
+                                    opacity: [0.3, 0.6, 0.3],
+                                    scale: [1, 1.2, 1],
                                 }}
                                 transition={{
                                     duration: 2,
                                     repeat: Infinity,
-                                    ease: "easeInOut",
-                                    delay: 0.5
+                                    ease: "easeInOut"
                                 }}
                                 style={{
                                     position: 'absolute',
-                                    top: '-4px',
-                                    right: '-4px',
-                                    color: '#f59e0b'
+                                    width: '100%',
+                                    height: '100%',
+                                    background: 'radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%)',
+                                    pointerEvents: 'none'
                                 }}
-                            >
-                                <Stars size={14} />
-                            </motion.div>
-                        </div>
-                    </motion.button>
-                )}
-            </AnimatePresence>
+                            />
+
+                            <div style={{ position: 'relative', zIndex: 1 }}>
+                                <motion.div
+                                    animate={{
+                                        rotate: [0, 10, -10, 0],
+                                    }}
+                                    transition={{
+                                        duration: 4,
+                                        repeat: Infinity,
+                                        ease: "easeInOut"
+                                    }}
+                                >
+                                    <Wand2 size={32} />
+                                </motion.div>
+
+                                <motion.div
+                                    animate={{
+                                        opacity: [0, 1, 0],
+                                        scale: [0.5, 1, 0.5],
+                                    }}
+                                    transition={{
+                                        duration: 2,
+                                        repeat: Infinity,
+                                        ease: "easeInOut",
+                                        delay: 0.5
+                                    }}
+                                    style={{
+                                        position: 'absolute',
+                                        top: '-4px',
+                                        right: '-4px',
+                                        color: '#f59e0b'
+                                    }}
+                                >
+                                    <Stars size={14} />
+                                </motion.div>
+                            </div>
+                        </motion.button>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
 
             {typeof document !== 'undefined' && createPortal(
                 <AnimatePresence>
@@ -581,7 +622,30 @@ const VoiceAssistant = ({ matchData }) => {
                                                 }}
                                             >
                                                 <MessageCircle size={20} style={{ flexShrink: 0, marginTop: '0.2rem' }} />
-                                                <div style={{ lineHeight: '1.6' }}>{response}</div>
+                                                <div
+                                                    ref={responseScrollRef}
+                                                    style={{
+                                                        lineHeight: '1.6',
+                                                        maxHeight: '180px',
+                                                        overflowY: 'auto',
+                                                        scrollbarWidth: 'thin',
+                                                        scrollbarColor: 'rgba(168, 85, 247, 0.5) transparent',
+                                                        flex: 1,
+                                                        paddingRight: '0.5rem'
+                                                    }}
+                                                >
+                                                    {isSpeaking && highlightIndices.end > 0 ? (
+                                                        <>
+                                                            <span>{response.substring(0, highlightIndices.start)}</span>
+                                                            <span className="highlighted-word" style={{ background: 'rgba(245, 158, 11, 0.25)', color: '#fcd34d', borderRadius: '4px', padding: '0 3px', boxShadow: '0 0 8px rgba(245, 158, 11, 0.4)' }}>
+                                                                {response.substring(highlightIndices.start, highlightIndices.end)}
+                                                            </span>
+                                                            <span>{response.substring(highlightIndices.end)}</span>
+                                                        </>
+                                                    ) : (
+                                                        response
+                                                    )}
+                                                </div>
                                             </motion.div>
                                         )}
                                     </div>
@@ -666,7 +730,7 @@ const VoiceAssistant = ({ matchData }) => {
                 </AnimatePresence>,
                 document.body
             )}
-        </div>
+        </>
     );
 };
 
