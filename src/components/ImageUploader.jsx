@@ -80,13 +80,14 @@ const ImageUploader = ({ onUploadSuccess, currentImageUrl, token }) => {
         const percent = limit > 0 ? (usage / limit) * 100 : 0;
         const free = limit - usage;
 
-        // Convert to GB for readability (Cloudinary usage is often in MB or GB)
+        // Convert to human readable format
         const formatSize = (bytes) => {
+            if (isNaN(bytes) || bytes < 0) return 'Unknown';
             if (bytes === 0) return '0 B';
             const k = 1024;
             const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
         };
 
         return {
