@@ -41,7 +41,8 @@ export const uploadImage = async (req, res) => {
 
 export const deleteImage = async (req, res) => {
     try {
-        const { public_id } = req.params;
+        // Support both path params and query params to bypass %2F routing issues
+        const public_id = req.params.public_id || req.query.public_id;
         if (!public_id) {
             return res.status(400).json({ message: 'Public ID is required' });
         }

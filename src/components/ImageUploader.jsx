@@ -90,7 +90,9 @@ const ImageUploader = ({ onUploadSuccess, currentImageUrl, currentImagePublicId,
         setDeleting(true);
         setError(null);
         try {
-            const res = await fetch(`/api/upload/${currentImagePublicId}`, {
+            // Use query parameters instead of URL path to avoid %2F related 404 blockages on Vercel
+            const encodedId = encodeURIComponent(currentImagePublicId);
+            const res = await fetch(`/api/upload?public_id=${encodedId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
