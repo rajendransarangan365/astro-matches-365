@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import authRoutes from '../backend/routes/authRoutes.js';
 import matchRoutes from '../backend/routes/matchRoutes.js';
 import profileRoutes from '../backend/routes/profileRoutes.js';
+import chatRoutes from '../backend/routes/chatRoutes.js';
+import adminRoutes from '../backend/routes/adminRoutes.js';
 
 dotenv.config();
 
@@ -15,6 +17,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/profiles', profileRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Export for Vercel
 export default app;
