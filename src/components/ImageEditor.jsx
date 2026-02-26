@@ -76,16 +76,19 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                         borderRadius: '50%',
                         background: 'rgba(255, 255, 255, 0.2)',
                         border: '1px solid rgba(255, 255, 255, 0.4)',
-                        color: 'white',
+                        color: '#ffffff', // Explicitly set to white for visibility
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
                         backdropFilter: 'blur(4px)',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+                        padding: 0,
+                        margin: 0,
+                        lineHeight: 0 // Prevents icon from getting pushed down
                     }}
                 >
-                    <X size={20} strokeWidth={2.5} />
+                    <X size={20} strokeWidth={2.5} color="#ffffff" />
                 </button>
 
                 {/* Header (Title Only) */}
