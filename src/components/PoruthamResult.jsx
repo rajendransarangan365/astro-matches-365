@@ -109,31 +109,37 @@ const PoruthamResult = ({ data }) => {
 
     const handleWhatsAppShare = (e) => {
         e.stopPropagation();
-        let message = `*திருமணப் பொருத்த அறிக்கை*\n`;
-        message += `பெண்: ${bride.name} | ஆண்: ${groom.name}\n\n`;
-        message += `*முடிவு*: ${canMarry ? 'பொருத்தம் உண்டு ✅' : 'பொருத்தம் இல்லை ❌'}\n`;
-        message += `*பொருத்தம்*: ${summaryReport?.percentage}%\n`;
-        message += `*பொதுவான கருத்து*: ${recommendation}\n\n`;
+        const lines = [];
+        lines.push('*\u0BA4\u0BBF\u0BB0\u0BC1\u0BAE\u0BA3\u0BAA\u0BCD \u0BAA\u0BCA\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4 \u0B85\u0BB1\u0BBF\u0B95\u0BCD\u0B95\u0BC8*');
+        lines.push(`\u0BAA\u0BC6\u0BA3\u0BCD: ${bride.name} | \u0B86\u0BA3\u0BCD: ${groom.name}`);
+        lines.push('');
+        lines.push(`*\u0BAE\u0BC1\u0B9F\u0BBF\u0BB5\u0BC1*: ${canMarry ? '\u0BAA\u0BCA\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4\u0BAE\u0BCD \u0B89\u0BA3\u0BCD\u0B9F\u0BC1' : '\u0BAA\u0BCA\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4\u0BAE\u0BCD \u0B87\u0BB2\u0BCD\u0BB2\u0BC8'}`);
+        lines.push(`*\u0BAA\u0BCA\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4\u0BAE\u0BCD*: ${summaryReport?.percentage}%`);
+        lines.push(`*\u0BAA\u0BCA\u0BA4\u0BC1\u0BB5\u0BBE\u0BA9 \u0B95\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4\u0BC1*: ${recommendation}`);
+        lines.push('');
 
         if (summaryReport.pros.length > 0) {
-            message += `*நிறைகள் (Pros)*:\n`;
-            summaryReport.pros.forEach(p => { message += `✅ ${p}\n`; });
-            message += `\n`;
+            lines.push('*\u0BA8\u0BBF\u0BB1\u0BC8\u0B95\u0BB3\u0BCD (Pros)*:');
+            summaryReport.pros.forEach(p => { lines.push(`- ${p}`); });
+            lines.push('');
         }
 
         if (summaryReport.cons && summaryReport.cons.length > 0) {
-            message += `*குறைகள் (Cons)*:\n`;
-            summaryReport.cons.forEach(c => { message += `❌ ${c}\n`; });
-            message += `\n`;
+            lines.push('*\u0B95\u0BC1\u0BB1\u0BC8\u0B95\u0BB3\u0BCD (Cons)*:');
+            summaryReport.cons.forEach(c => { lines.push(`- ${c}`); });
+            lines.push('');
         }
 
-        message += `*விவரமான அறிக்கை (Verdict)*:\n${summaryReport?.verdict}\n\n`;
+        lines.push(`*\u0BB5\u0BBF\u0BB5\u0BB0\u0BAE\u0BBE\u0BA9 \u0B85\u0BB1\u0BBF\u0B95\u0BCD\u0B95\u0BC8 (Verdict)*:`);
+        lines.push(summaryReport?.verdict || '');
+        lines.push('');
 
-        let conclusion = "இந்த ஜாதகங்களை இணைப்பது ";
-        conclusion += canMarry ? "உத்தமம் மற்றும் நன்மைகளைத் தரும் (Highly Recommended)." : "தவிர்ப்பது நல்லது (Not Recommended).";
+        const conclusion = canMarry
+            ? '\u0B87\u0BA8\u0BCD\u0BA4 \u0B9C\u0BBE\u0BA4\u0B95\u0B99\u0BCD\u0B95\u0BB3\u0BC8 \u0B87\u0BA3\u0BC8\u0BAA\u0BCD\u0BAA\u0BA4\u0BC1 \u0B89\u0BA4\u0BCD\u0BA4\u0BAE\u0BAE\u0BCD \u0BAE\u0BB1\u0BCD\u0BB1\u0BC1\u0BAE\u0BCD \u0BA8\u0BA9\u0BCD\u0BAE\u0BC8\u0B95\u0BB3\u0BC8\u0BA4\u0BCD \u0BA4\u0BB0\u0BC1\u0BAE\u0BCD (Highly Recommended).'
+            : '\u0BA4\u0BB5\u0BBF\u0BB0\u0BCD\u0BAA\u0BCD\u0BAA\u0BA4\u0BC1 \u0BA8\u0BB2\u0BCD\u0BB2\u0BA4\u0BC1 (Not Recommended).';
+        lines.push(`*\u0B87\u0BB1\u0BC1\u0BA4\u0BBF \u0BAE\u0BC1\u0B9F\u0BBF\u0BB5\u0BC1*: ${conclusion}`);
 
-        message += `*இறுதி முடிவு*: ${conclusion}\n`;
-
+        const message = lines.join('\n');
         const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');
     };
