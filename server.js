@@ -5,6 +5,7 @@ import authRoutes from './backend/routes/authRoutes.js';
 import matchRoutes from './backend/routes/matchRoutes.js';
 import profileRoutes from './backend/routes/profileRoutes.js';
 import chatRoutes from './backend/routes/chatRoutes.js';
+import adminRoutes from './backend/routes/adminRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -20,6 +21,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/admin', adminRoutes);
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

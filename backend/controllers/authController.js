@@ -45,6 +45,8 @@ export const registerUser = async (req, res) => {
             password: hashedPassword,
             securityQuestion,
             securityAnswer: securityAnswer.toLowerCase().trim(),
+            isAdmin: false,
+            canUseVoiceAssistant: false,
             createdAt: new Date()
         });
 
@@ -54,6 +56,8 @@ export const registerUser = async (req, res) => {
                 name,
                 email: email.toLowerCase().trim(),
                 mobile: mobile.trim(),
+                isAdmin: false,
+                canUseVoiceAssistant: false,
                 token: generateToken(result.insertedId)
             });
         } else {
@@ -78,6 +82,8 @@ export const loginUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 mobile: user.mobile,
+                isAdmin: user.isAdmin || false,
+                canUseVoiceAssistant: user.canUseVoiceAssistant || false,
                 token: generateToken(user._id)
             });
         } else {
@@ -85,6 +91,40 @@ export const loginUser = async (req, res) => {
         }
     } catch (error) {
         console.error('Login Error:', error);
+        res.status(500).json({ message: 'சேவையக பிழை (Server Error)' });
+    }
+};
+
+export const adminLogin = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const { usersCollection } = await connectToDb();
+        const user = await usersCollection.findOne({ email: email?.toLowerCase()?.trim() });
+
+        if (!user) {
+            return res.status(401).json({ message: 'நிர்வாகி கணக்கு கிடைக்கவில்லை (Admin account not found)' });
+        }
+
+        if (!user.isAdmin) {
+            return res.status(403).json({ message: 'உங்களுக்கு நிர்வாகி அனுமதி இல்லை (Not authorized as Admin)' });
+        }
+
+        if (await bcrypt.compare(password, user.password)) {
+            res.json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                mobile: user.mobile,
+                isAdmin: user.isAdmin,
+                canUseVoiceAssistant: user.canUseVoiceAssistant || false,
+                token: generateToken(user._id)
+            });
+        } else {
+            res.status(401).json({ message: 'மின்னஞ்சல் அல்லது கடவுச்சொல் தவறானது' });
+        }
+    } catch (error) {
+        console.error('Admin Login Error:', error);
         res.status(500).json({ message: 'சேவையக பிழை (Server Error)' });
     }
 };

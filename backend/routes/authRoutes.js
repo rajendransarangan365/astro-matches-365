@@ -2,6 +2,7 @@ import express from 'express';
 import {
     registerUser,
     loginUser,
+    adminLogin,
     getMe,
     getUserSecurityDetails,
     verifyCurrentPassword,
@@ -16,6 +17,7 @@ const router = express.Router();
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.post('/admin-login', adminLogin);
 router.get('/me', protect, getMe);
 router.get('/security-details', protect, getUserSecurityDetails);
 router.post('/verify-password', protect, verifyCurrentPassword);

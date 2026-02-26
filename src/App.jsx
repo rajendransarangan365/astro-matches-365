@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PersonForm from './components/PersonForm';
 import PoruthamResult from './components/PoruthamResult';
 import JathagamCalculator from './components/JathagamCalculator';
 import MatchFinder from './components/MatchFinder';
-import { Heart, Sparkles, LogOut, Save, CheckCircle2, History, User, Calculator, HeartHandshake, Search } from 'lucide-react';
+import { Heart, Sparkles, LogOut, Save, CheckCircle2, History, User, Calculator, HeartHandshake, Search, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import ForgotPassword from './components/ForgotPassword';
 import ProfileSettingsModal from './components/ProfileSettingsModal';
+import AdminDashboard from './components/AdminDashboard';
+import AdminLogin from './components/AdminLogin';
 
 import { useProfiles } from './hooks/useProfiles';
 import { usePorutham } from './hooks/usePorutham';
@@ -29,12 +31,21 @@ function App() {
   const { savedMatches, fetchMatches } = useMatches(token);
   const { result, saveStatus, handleCalculate, handleSaveMatch } = usePorutham(token, brideData, groomData);
 
+  // Effect to automatically switch to admin dashboard if an admin just logged in
+  useEffect(() => {
+    if (isAuthenticated && user?.isAdmin && activePage === 'matching' && authMode === 'admin-login') {
+      setActivePage('admin');
+      setAuthMode('login'); // Reset auth mode for next time
+    }
+  }, [isAuthenticated, user, activePage, authMode]);
+
   if (loading) return <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', color: 'var(--text-muted)' }}>Loading...</div>;
 
   if (!isAuthenticated) {
-    if (authMode === 'login') return <LoginPage onSwitch={() => setAuthMode('signup')} onForgot={() => setAuthMode('forgot-password')} />;
+    if (authMode === 'login') return <LoginPage onSwitch={() => setAuthMode('signup')} onForgot={() => setAuthMode('forgot-password')} onAdmin={() => setAuthMode('admin-login')} />;
     if (authMode === 'signup') return <SignupPage onSwitch={() => setAuthMode('login')} />;
     if (authMode === 'forgot-password') return <ForgotPassword onBack={() => setAuthMode('login')} />;
+    if (authMode === 'admin-login') return <AdminLogin onBack={() => setAuthMode('login')} />;
   }
 
   return (
@@ -78,7 +89,8 @@ function App() {
               { id: 'matching', icon: HeartHandshake, label: 'பொருத்தம்' },
               { id: 'jathagam', icon: Calculator, label: 'ஜாதகம்' },
               { id: 'matches', icon: Search, label: 'தேடல்' },
-              { id: 'dashboard', icon: History, label: 'Dashboard', onClick: fetchMatches }
+              { id: 'dashboard', icon: History, label: 'Dashboard', onClick: fetchMatches },
+              ...(user?.isAdmin ? [{ id: 'admin', icon: ShieldCheck, label: 'Admin' }] : [])
             ].map((tab) => {
               const isActive = activePage === tab.id;
               const Icon = tab.icon;
@@ -116,6 +128,10 @@ function App() {
       {/* Page Content */}
       {activePage === 'jathagam' ? (
         <JathagamCalculator />
+      ) : activePage === 'admin' ? (
+        <div className="container" style={{ maxWidth: '1000px' }}>
+          <AdminDashboard token={token} />
+        </div>
       ) : activePage === 'matches' ? (
         <div className="container">
           <MatchFinder />

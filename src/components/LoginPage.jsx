@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, ShieldCheck } from 'lucide-react';
 
-const LoginPage = ({ onSwitch, onForgot }) => {
+const LoginPage = ({ onSwitch, onForgot, onAdmin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -99,9 +99,33 @@ const LoginPage = ({ onSwitch, onForgot }) => {
                     <button
                         type="button"
                         onClick={onSwitch}
-                        style={{ background: 'transparent', border: 'none', color: 'var(--primary)', padding: 0, fontWeight: 'bold' }}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--primary)', padding: 0, fontWeight: 'bold', cursor: 'pointer' }}
                     >
                         இப்போதே பதிவு செய்யுங்கள் (Sign Up)
+                    </button>
+                </div>
+
+                <div style={{ marginTop: '2rem', textAlign: 'center', paddingTop: '1.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)' }}>
+                    <button
+                        type="button"
+                        onClick={onAdmin}
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--text-muted)',
+                            padding: '0.5rem 1rem',
+                            fontSize: '0.8rem',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            borderRadius: '2rem',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseOver={(e) => { e.currentTarget.style.color = '#c084fc'; e.currentTarget.style.background = 'rgba(168, 85, 247, 0.1)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
+                    >
+                        <ShieldCheck size={14} /> நிர்வாகி தளம் (Admin Portal)
                     </button>
                 </div>
             </motion.div>
