@@ -259,7 +259,7 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
                     alignItems: 'flex-start'
                 }}>
                     <Sparkles size={14} style={{ color: '#38bdf8', flexShrink: 0, marginTop: '2px' }} />
-                    <span>இராசி, நட்சத்திரம் மற்றும் கட்டங்கள் கணினி மூலம் கணிக்கப்பட்டவை. உங்கள் தகவலுக்கு ஏற்ப இவற்றை நீங்கள் மாற்றிக்கொள்ளலாம். (Calculated based on your details, you may change them if needed.)</span>
+                    <span>இராசி, நட்சத்திரம் மற்றும் கட்டங்கள் கணினி மூலம் கணிக்கப்பட்டவை. உங்கள் விவரங்களுக்கு ஏற்ப அவற்றை தேவையானால் மாற்றிக்கொள்ளலாம். (Calculated based on your details, you may change them if needed.)</span>
                 </div>
 
                 {/* Collapsible Charts */}

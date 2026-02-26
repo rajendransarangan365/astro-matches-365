@@ -10,7 +10,7 @@ const RASI_NAMES = {
     9: "தனு", 10: "மக", 11: "கும்", 12: "மீன"
 };
 
-const RasiKattam = ({ title, chartData, color, highlightRasiId }) => {
+const RasiKattam = ({ title, chartData = {}, color, highlightRasiId }) => {
     return (
         <div style={{ marginBottom: '1.5rem', flex: 1 }}>
             <h4 style={{ fontSize: '0.85rem', color: color, marginBottom: '0.5rem', textAlign: 'center' }}>
