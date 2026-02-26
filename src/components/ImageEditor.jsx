@@ -26,109 +26,140 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
     };
 
     return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.95)',
-            zIndex: 10000,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1rem'
-        }}>
-            <div style={{
-                position: 'relative',
-                width: '100%',
-                maxWidth: '500px',
-                height: '400px',
-                background: '#111',
-                borderRadius: '1.5rem',
-                overflow: 'hidden',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-            }}>
-                <Cropper
-                    image={image}
-                    crop={crop}
-                    zoom={zoom}
-                    rotation={rotation}
-                    aspect={1}
-                    onCropChange={onCropChange}
-                    onCropComplete={onCropCompleteInternal}
-                    onZoomChange={onZoomChange}
-                    style={{
-                        containerStyle: {
-                            borderRadius: '1.5rem'
-                        }
-                    }}
-                />
-            </div>
-
-            <div style={{
-                marginTop: '1.5rem',
-                width: '100%',
-                maxWidth: '500px',
-                background: 'rgba(255,255,255,0.05)',
-                padding: '1.5rem',
-                borderRadius: '1.5rem',
-                border: '1px solid rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(10px)'
-            }}>
-                {/* Zoom Control */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                    <ZoomOut size={18} color="rgba(255,255,255,0.5)" />
-                    <input
-                        type="range"
-                        value={zoom}
-                        min={1}
-                        max={3}
-                        step={0.1}
-                        aria-labelledby="Zoom"
-                        onChange={(e) => setZoom(e.target.value)}
-                        style={{ flex: 1, accentColor: 'var(--primary)' }}
-                    />
-                    <ZoomIn size={18} color="rgba(255,255,255,0.5)" />
-                </div>
-
-                {/* Rotation Control */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <RotateCcw size={18} color="rgba(255,255,255,0.5)" />
-                    <input
-                        type="range"
-                        value={rotation}
-                        min={0}
-                        max={360}
-                        step={1}
-                        aria-labelledby="Rotation"
-                        onChange={(e) => setRotation(e.target.value)}
-                        style={{ flex: 1, accentColor: 'var(--primary)' }}
-                    />
-                </div>
-
-                <div style={{ display: 'flex', gap: '1rem' }}>
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0,0,0,0.8)',
+                zIndex: 10000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '1rem',
+                backdropFilter: 'blur(8px)'
+            }}
+        >
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                style={{
+                    width: '100%',
+                    maxWidth: '500px',
+                    maxHeight: '90vh',
+                    background: 'var(--bg-card, #1a1b1e)',
+                    borderRadius: '1.5rem',
+                    overflow: 'hidden',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    border: '1px solid rgba(255,255,255,0.1)'
+                }}
+            >
+                {/* Header */}
+                <div style={{
+                    padding: '1.25rem 1.5rem',
+                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                }}>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'white' }}>Edit Photo</h3>
                     <button
                         onClick={onCancel}
-                        className="btn-sm btn-outline"
-                        style={{ flex: 1, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                        style={{ padding: '0.5rem', background: 'transparent', color: 'rgba(255,255,255,0.5)' }}
                     >
-                        <X size={18} /> Cancel
-                    </button>
-                    <button
-                        onClick={handleConfirm}
-                        style={{ flex: 1, background: 'var(--primary)', color: 'white' }}
-                    >
-                        <Check size={18} /> Apply Crop
+                        <X size={20} />
                     </button>
                 </div>
-            </div>
 
-            <p style={{ marginTop: '1rem', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>
-                Drag to position • Pinch/Scroll to zoom
-            </p>
-        </div>
+                {/* Editor Area */}
+                <div style={{
+                    position: 'relative',
+                    flex: 1,
+                    minHeight: '300px',
+                    maxHeight: '400px',
+                    background: '#000'
+                }}>
+                    <Cropper
+                        image={image}
+                        crop={crop}
+                        zoom={zoom}
+                        rotation={rotation}
+                        aspect={1}
+                        onCropChange={onCropChange}
+                        onCropComplete={onCropCompleteInternal}
+                        onZoomChange={onZoomChange}
+                    />
+                </div>
+
+                {/* Controls Area */}
+                <div style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)' }}>
+                    {/* Zoom Control */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem' }}>
+                        <ZoomOut size={16} color="rgba(255,255,255,0.4)" />
+                        <input
+                            type="range"
+                            value={zoom}
+                            min={1}
+                            max={3}
+                            step={0.1}
+                            aria-labelledby="Zoom"
+                            onChange={(e) => setZoom(parseFloat(e.target.value))}
+                            style={{ flex: 1, accentColor: 'var(--primary, #3b82f6)' }}
+                        />
+                        <ZoomIn size={16} color="rgba(255,255,255,0.4)" />
+                    </div>
+
+                    {/* Rotation Control */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                        <RotateCcw size={16} color="rgba(255,255,255,0.4)" />
+                        <input
+                            type="range"
+                            value={rotation}
+                            min={0}
+                            max={360}
+                            step={1}
+                            aria-labelledby="Rotation"
+                            onChange={(e) => setRotation(parseFloat(e.target.value))}
+                            style={{ flex: 1, accentColor: 'var(--primary, #3b82f6)' }}
+                        />
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button
+                            onClick={onCancel}
+                            className="btn-sm btn-outline"
+                            style={{ flex: 1, height: '44px' }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleConfirm}
+                            className="btn-sm"
+                            style={{ flex: 1, height: '44px', background: 'var(--primary, #3b82f6)', color: 'white' }}
+                        >
+                            <Check size={18} style={{ marginRight: '0.5rem' }} /> Apply
+                        </button>
+                    </div>
+
+                    <p style={{
+                        margin: '1rem 0 0',
+                        color: 'rgba(255,255,255,0.3)',
+                        fontSize: '0.75rem',
+                        textAlign: 'center'
+                    }}>
+                        Drag to reposition • Pinch to zoom
+                    </p>
+                </div>
+            </motion.div>
+        </motion.div>
     );
 };
 
