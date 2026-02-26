@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Search, Loader2, AlertCircle, Mic, MicOff, KeyRound, Users, ChevronDown, Trash2, Crown, User } from 'lucide-react';
+import { ShieldCheck, Search, Loader2, AlertCircle, Mic, MicOff, KeyRound, Users, ChevronDown, Trash2, Crown, User, Image } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const OWNER_EMAIL = 'sarangan365@gmail.com';
@@ -71,6 +71,21 @@ const AdminDashboard = ({ token }) => {
             setUsers(users.map(u => u._id === userId ? { ...u, canUseVoiceAssistant: !currentAccess } : u));
         } catch (error) {
             setUpdateError('குரல் அனுமதி மாற்றத்தில் பிழை');
+            console.error(error);
+        }
+    };
+
+    const toggleImageAccess = async (userId, currentAccess) => {
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/image-access`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ canUploadImages: !currentAccess })
+            });
+            if (!res.ok) throw new Error('Failed to update image access');
+            setUsers(users.map(u => u._id === userId ? { ...u, canUploadImages: !currentAccess } : u));
+        } catch (error) {
+            setUpdateError('புகைப்பட அனுமதி மாற்றத்தில் பிழை');
             console.error(error);
         }
     };
@@ -320,6 +335,11 @@ const AdminDashboard = ({ token }) => {
                                                                     on={u.canUseVoiceAssistant}
                                                                     onToggle={() => toggleVoiceAccess(u._id, u.canUseVoiceAssistant)}
                                                                     label={<><Mic size={12} style={{ marginRight: '0.3rem' }} /> குரல் ஏஐ அனுமதி</>}
+                                                                />
+                                                                <Toggle
+                                                                    on={u.canUploadImages}
+                                                                    onToggle={() => toggleImageAccess(u._id, u.canUploadImages)}
+                                                                    label={<><Image size={12} style={{ marginRight: '0.3rem' }} /> புகைப்பட அனுமதி</>}
                                                                 />
                                                                 {u.email !== OWNER_EMAIL && (
                                                                     <Toggle

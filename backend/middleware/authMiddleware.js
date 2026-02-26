@@ -25,6 +25,7 @@ export const protect = async (req, res, next) => {
             userWithoutPassword.id = user._id.toString();
             userWithoutPassword.isAdmin = user.isAdmin || false;
             userWithoutPassword.canUseVoiceAssistant = user.canUseVoiceAssistant || false;
+            userWithoutPassword.canUploadImages = user.canUploadImages || false;
             req.user = userWithoutPassword;
 
             next();
@@ -48,10 +49,10 @@ export const isAdmin = (req, res, next) => {
     }
 };
 
-export const isAIAuthorized = (req, res, next) => {
-    if (req.user && (req.user.isAdmin || req.user.canUseVoiceAssistant)) {
+export const isImageAuthorized = (req, res, next) => {
+    if (req.user && (req.user.isAdmin || req.user.canUploadImages)) {
         next();
     } else {
-        res.status(403).json({ message: 'குரல் ஏஐ அனுமதி உள்ளவர்களுக்கு மட்டுமே அனுமதி' });
+        res.status(403).json({ message: 'புகைப்பட அனுமதி உள்ளவர்களுக்கு மட்டுமே அனுமதி' });
     }
 };

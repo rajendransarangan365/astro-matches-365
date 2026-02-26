@@ -47,6 +47,7 @@ export const registerUser = async (req, res) => {
             securityAnswer: securityAnswer.toLowerCase().trim(),
             isAdmin: false,
             canUseVoiceAssistant: false,
+            canUploadImages: false,
             createdAt: new Date()
         });
 
@@ -58,6 +59,7 @@ export const registerUser = async (req, res) => {
                 mobile: mobile.trim(),
                 isAdmin: false,
                 canUseVoiceAssistant: false,
+                canUploadImages: false,
                 token: generateToken(result.insertedId)
             });
         } else {
@@ -84,6 +86,7 @@ export const loginUser = async (req, res) => {
                 mobile: user.mobile,
                 isAdmin: user.isAdmin || false,
                 canUseVoiceAssistant: user.canUseVoiceAssistant || false,
+                canUploadImages: user.canUploadImages || false,
                 token: generateToken(user._id)
             });
         } else {
@@ -118,6 +121,7 @@ export const adminLogin = async (req, res) => {
                 mobile: user.mobile,
                 isAdmin: user.isAdmin,
                 canUseVoiceAssistant: user.canUseVoiceAssistant || false,
+                canUploadImages: user.canUploadImages || false,
                 token: generateToken(user._id)
             });
         } else {

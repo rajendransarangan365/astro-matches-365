@@ -40,6 +40,29 @@ router.patch('/users/:id/voice-access', protectAdmin, async (req, res) => {
     }
 });
 
+// PATCH toggle image upload access (Admin only)
+router.patch('/users/:id/image-access', protectAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { canUploadImages } = req.body;
+
+        const { usersCollection } = await connectToDb();
+        const result = await usersCollection.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { canUploadImages } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'பயனர் கிடைக்கவில்லை (User not found)' });
+        }
+
+        res.json({ message: 'புகைப்பட அனுமதி புதுப்பிக்கப்பட்டது (Image access updated)' });
+    } catch (error) {
+        console.error('Error toggling image access:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
 // GET search user for security question recovery (Admin only)
 router.get('/users/search', protectAdmin, async (req, res) => {
     try {
