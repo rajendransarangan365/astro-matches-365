@@ -21,7 +21,7 @@ const CITY_OPTIONS = CITIES.map(c => ({ value: c, label: c }));
 
 const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile, onDeleteProfile, saveStatus }) => {
     const { user, token } = useAuth();
-    const isAdmin = user && user.isAdmin;
+    const isAuthorized = user && (user.isAdmin || user.canUseVoiceAssistant);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [calculating, setCalculating] = useState(false);
 
@@ -106,8 +106,8 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
                 </div>
             )}
 
-            {/* Image Uploader (Admin Only) */}
-            {isAdmin && (
+            {/* Image Uploader (Authorized Users Only) */}
+            {isAuthorized && (
                 <ImageUploader
                     token={token}
                     currentImageUrl={data.imageUrl}

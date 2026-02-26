@@ -23,7 +23,8 @@ export const protect = async (req, res, next) => {
 
             const { password, ...userWithoutPassword } = user;
             userWithoutPassword.id = user._id.toString();
-            userWithoutPassword.isAdmin = user.isAdmin || false; // Ensure isAdmin is available
+            userWithoutPassword.isAdmin = user.isAdmin || false;
+            userWithoutPassword.canUseVoiceAssistant = user.canUseVoiceAssistant || false;
             req.user = userWithoutPassword;
 
             next();
@@ -44,5 +45,13 @@ export const isAdmin = (req, res, next) => {
         next();
     } else {
         res.status(403).json({ message: 'நிர்வாகிகளுக்கு மட்டுமே அனுமதி' });
+    }
+};
+
+export const isAIAuthorized = (req, res, next) => {
+    if (req.user && (req.user.isAdmin || req.user.canUseVoiceAssistant)) {
+        next();
+    } else {
+        res.status(403).json({ message: 'குரல் ஏஐ அனுமதி உள்ளவர்களுக்கு மட்டுமே அனுமதி' });
     }
 };
