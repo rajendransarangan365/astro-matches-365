@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Cropper from 'react-easy-crop';
 import { motion } from 'framer-motion';
 import { Check, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
@@ -25,7 +26,9 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
         }
     };
 
-    return (
+    if (typeof document === 'undefined') return null;
+
+    return createPortal(
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -52,7 +55,7 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                     width: '100%',
                     maxWidth: '500px',
                     height: '100%',
-                    maxHeight: '100dvh', // Use dvh for better mobile browser support
+                    maxHeight: '100%', // Changed from 100dvh to prevent clipping
                     background: '#1a1b1e',
                     display: 'flex',
                     flexDirection: 'column',
@@ -60,22 +63,39 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                     overflow: 'hidden'
                 }}
             >
-                {/* Header */}
+                {/* Floating Close Button */}
+                <button
+                    onClick={onCancel}
+                    style={{
+                        position: 'absolute',
+                        top: '1rem',
+                        right: '1rem',
+                        zIndex: 10,
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '50%',
+                        background: 'rgba(255, 255, 255, 0.2)',
+                        border: '1px solid rgba(255, 255, 255, 0.4)',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        backdropFilter: 'blur(4px)',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+                    }}
+                >
+                    <X size={20} strokeWidth={2.5} />
+                </button>
+
+                {/* Header (Title Only) */}
                 <div style={{
-                    padding: '1rem 1.25rem',
-                    borderBottom: '1px solid rgba(255,255,255,0.05)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexShrink: 0
+                    position: 'absolute',
+                    top: '1.2rem',
+                    left: '1.2rem',
+                    zIndex: 10,
                 }}>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'white' }}>Edit Photo</h3>
-                    <button
-                        onClick={onCancel}
-                        style={{ padding: '0.4rem', background: 'transparent', color: 'rgba(255,255,255,0.5)', border: 'none', cursor: 'pointer' }}
-                    >
-                        <X size={22} />
-                    </button>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>Edit Photo</h3>
                 </div>
 
                 {/* Editor Area */}
@@ -108,6 +128,7 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                 {/* Controls Area */}
                 <div style={{
                     padding: '1.25rem',
+                    paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 1rem))', // added safe area padding for mobile
                     background: 'rgba(26, 27, 30, 0.95)',
                     borderTop: '1px solid rgba(255,255,255,0.05)',
                     flexShrink: 0,
@@ -193,7 +214,8 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                     </p>
                 </div>
             </motion.div>
-        </motion.div>
+        </motion.div>,
+        document.body
     );
 };
 
