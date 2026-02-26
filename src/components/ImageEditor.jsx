@@ -36,12 +36,12 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: 'rgba(0,0,0,0.85)',
-                zIndex: 10000,
+                background: 'rgba(0,0,0,0.9)',
+                zIndex: 999999, // Super high z-index to stay above bottom nav
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '0.5rem',
+                padding: 0, // No padding so it can fill the screen
                 backdropFilter: 'blur(10px)'
             }}
         >
@@ -50,16 +50,14 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                 animate={{ scale: 1, opacity: 1 }}
                 style={{
                     width: '100%',
-                    maxWidth: '450px',
-                    maxHeight: 'calc(100vh - 1rem)',
+                    maxWidth: '500px',
+                    height: '100%',
+                    maxHeight: '100dvh', // Use dvh for better mobile browser support
                     background: '#1a1b1e',
-                    borderRadius: '1.25rem',
-                    overflow: 'hidden',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
                     display: 'flex',
                     flexDirection: 'column',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    position: 'relative'
+                    position: 'relative',
+                    overflow: 'hidden'
                 }}
             >
                 {/* Header */}
@@ -71,12 +69,12 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                     justifyContent: 'space-between',
                     flexShrink: 0
                 }}>
-                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'white' }}>Edit Photo</h3>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'white' }}>Edit Photo</h3>
                     <button
                         onClick={onCancel}
                         style={{ padding: '0.4rem', background: 'transparent', color: 'rgba(255,255,255,0.5)', border: 'none', cursor: 'pointer' }}
                     >
-                        <X size={20} />
+                        <X size={22} />
                     </button>
                 </div>
 
@@ -84,11 +82,10 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                 <div style={{
                     position: 'relative',
                     width: '100%',
-                    height: '35vh',
-                    minHeight: '260px',
-                    maxHeight: '400px',
+                    flex: 1, // Take up all remaining space
                     background: '#000',
-                    flexShrink: 0
+                    display: 'flex',
+                    flexDirection: 'column'
                 }}>
                     <Cropper
                         image={image}
@@ -99,19 +96,26 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                         onCropChange={onCropChange}
                         onCropComplete={onCropCompleteInternal}
                         onZoomChange={onZoomChange}
+                        style={{
+                            containerStyle: {
+                                height: '100%',
+                                width: '100%'
+                            }
+                        }}
                     />
                 </div>
 
                 {/* Controls Area */}
                 <div style={{
                     padding: '1.25rem',
-                    background: 'rgba(255,255,255,0.03)',
-                    overflowY: 'auto',
-                    flex: 1
+                    background: 'rgba(26, 27, 30, 0.95)',
+                    borderTop: '1px solid rgba(255,255,255,0.05)',
+                    flexShrink: 0,
+                    zIndex: 2 // Ensure controls stay above cropper
                 }}>
                     {/* Zoom Control */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                        <ZoomOut size={14} color="rgba(255,255,255,0.4)" />
+                        <ZoomOut size={16} color="rgba(255,255,255,0.4)" />
                         <input
                             type="range"
                             value={zoom}
@@ -122,12 +126,12 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                             onChange={(e) => setZoom(parseFloat(e.target.value))}
                             style={{ flex: 1, accentColor: '#3b82f6', height: '4px' }}
                         />
-                        <ZoomIn size={14} color="rgba(255,255,255,0.4)" />
+                        <ZoomIn size={16} color="rgba(255,255,255,0.4)" />
                     </div>
 
                     {/* Rotation Control */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                        <RotateCcw size={14} color="rgba(255,255,255,0.4)" />
+                        <RotateCcw size={16} color="rgba(255,255,255,0.4)" />
                         <input
                             type="range"
                             value={rotation}
@@ -141,17 +145,17 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                     </div>
 
                     {/* Actions */}
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
                         <button
                             onClick={onCancel}
                             style={{
                                 flex: 1,
-                                height: '40px',
+                                height: '44px',
                                 borderRadius: '0.75rem',
                                 border: '1px solid rgba(255,255,255,0.1)',
                                 background: 'transparent',
                                 color: 'white',
-                                fontSize: '0.9rem',
+                                fontSize: '1rem',
                                 cursor: 'pointer'
                             }}
                         >
@@ -161,12 +165,12 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                             onClick={handleConfirm}
                             style={{
                                 flex: 1,
-                                height: '40px',
+                                height: '44px',
                                 borderRadius: '0.75rem',
                                 border: 'none',
                                 background: '#3b82f6',
                                 color: 'white',
-                                fontSize: '0.9rem',
+                                fontSize: '1rem',
                                 fontWeight: 600,
                                 display: 'flex',
                                 alignItems: 'center',
@@ -182,7 +186,7 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                     <p style={{
                         margin: '1rem 0 0',
                         color: 'rgba(255,255,255,0.3)',
-                        fontSize: '0.7rem',
+                        fontSize: '0.75rem',
                         textAlign: 'center'
                     }}>
                         Drag to reposition • Pinch to zoom
