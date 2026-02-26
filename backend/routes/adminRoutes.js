@@ -79,6 +79,15 @@ router.patch('/users/:id/admin-access', protectAdmin, async (req, res) => {
         const { isAdmin } = req.body;
 
         const { usersCollection } = await connectToDb();
+
+        // Prevent removing admin from owner
+        if (!isAdmin) {
+            const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+            if (user && user.email === 'sarangan365@gmail.com') {
+                return res.status(403).json({ message: 'உரிமையாளரின் நிர்வாகி அனுமதியை நீக்க முடியாது (Cannot remove owner admin access)' });
+            }
+        }
+
         const result = await usersCollection.updateOne(
             { _id: new ObjectId(id) },
             { $set: { isAdmin } }
@@ -101,6 +110,13 @@ router.delete('/users/:id', protectAdmin, async (req, res) => {
         const { id } = req.params;
 
         const { usersCollection } = await connectToDb();
+
+        // Prevent deleting the owner account
+        const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+        if (user && user.email === 'sarangan365@gmail.com') {
+            return res.status(403).json({ message: 'உரிமையாளர் கணக்கை நீக்க முடியாது (Cannot delete owner account)' });
+        }
+
         const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
 
         if (result.deletedCount === 0) {

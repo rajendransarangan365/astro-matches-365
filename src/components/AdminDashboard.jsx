@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Search, Loader2, AlertCircle, Mic, MicOff, KeyRound, Users, ChevronDown, Trash2, Crown, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const OWNER_EMAIL = 'sarangan365@gmail.com';
+
 const AdminDashboard = ({ token }) => {
     const [activeTab, setActiveTab] = useState('access');
     const [expandedUser, setExpandedUser] = useState(null);
@@ -319,50 +321,65 @@ const AdminDashboard = ({ token }) => {
                                                                     onToggle={() => toggleVoiceAccess(u._id, u.canUseVoiceAssistant)}
                                                                     label={<><Mic size={12} style={{ marginRight: '0.3rem' }} /> குரல் ஏஐ அனுமதி</>}
                                                                 />
-                                                                <Toggle
-                                                                    on={u.isAdmin}
-                                                                    onToggle={() => toggleAdminAccess(u._id, u.isAdmin)}
-                                                                    label={<><Crown size={12} style={{ marginRight: '0.3rem' }} /> நிர்வாகி அனுமதி</>}
-                                                                />
-                                                            </div>
-
-                                                            {/* Delete Button */}
-                                                            <div style={{ borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '0.5rem', marginTop: '0.25rem' }}>
-                                                                {deleteConfirm === u._id ? (
-                                                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                                                        <p style={{ fontSize: '0.72rem', color: '#f87171', flex: 1, margin: 0 }}>நிச்சயமாக நீக்கவா?</p>
-                                                                        <button
-                                                                            onClick={(e) => { e.stopPropagation(); deleteUser(u._id); }}
-                                                                            style={{
-                                                                                background: 'rgba(239,68,68,0.15)', color: '#f87171',
-                                                                                border: '1px solid rgba(239,68,68,0.3)', padding: '0.3rem 0.75rem',
-                                                                                borderRadius: '0.5rem', fontSize: '0.72rem', width: 'auto'
-                                                                            }}
-                                                                        >ஆம், நீக்கு</button>
-                                                                        <button
-                                                                            onClick={(e) => { e.stopPropagation(); setDeleteConfirm(null); }}
-                                                                            style={{
-                                                                                background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)',
-                                                                                border: '1px solid rgba(255,255,255,0.1)', padding: '0.3rem 0.75rem',
-                                                                                borderRadius: '0.5rem', fontSize: '0.72rem', width: 'auto'
-                                                                            }}
-                                                                        >வேண்டாம்</button>
+                                                                {u.email !== OWNER_EMAIL && (
+                                                                    <Toggle
+                                                                        on={u.isAdmin}
+                                                                        onToggle={() => toggleAdminAccess(u._id, u.isAdmin)}
+                                                                        label={<><Crown size={12} style={{ marginRight: '0.3rem' }} /> நிர்வாகி அனுமதி</>}
+                                                                    />
+                                                                )}
+                                                                {u.email === OWNER_EMAIL && (
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0', fontSize: '0.75rem', color: '#fbbf24' }}>
+                                                                        <Crown size={12} /> உரிமையாளர் — எப்போதும் நிர்வாகி
                                                                     </div>
-                                                                ) : (
-                                                                    <button
-                                                                        onClick={(e) => { e.stopPropagation(); setDeleteConfirm(u._id); }}
-                                                                        style={{
-                                                                            background: 'transparent', color: '#f87171',
-                                                                            border: 'none', padding: '0.3rem 0',
-                                                                            fontSize: '0.72rem', width: 'auto',
-                                                                            display: 'flex', alignItems: 'center', gap: '0.35rem',
-                                                                            opacity: 0.7
-                                                                        }}
-                                                                    >
-                                                                        <Trash2 size={13} /> பயனரை நீக்கு (Delete User)
-                                                                    </button>
                                                                 )}
                                                             </div>
+
+                                                            {/* Delete Button — hidden for owner */}
+                                                            {u.email !== OWNER_EMAIL ? (
+                                                                <div style={{ borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '0.5rem', marginTop: '0.25rem' }}>
+                                                                    {deleteConfirm === u._id ? (
+                                                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                                            <p style={{ fontSize: '0.72rem', color: '#f87171', flex: 1, margin: 0 }}>நிச்சயமாக நீக்கவா?</p>
+                                                                            <button
+                                                                                onClick={(e) => { e.stopPropagation(); deleteUser(u._id); }}
+                                                                                style={{
+                                                                                    background: 'rgba(239,68,68,0.15)', color: '#f87171',
+                                                                                    border: '1px solid rgba(239,68,68,0.3)', padding: '0.3rem 0.75rem',
+                                                                                    borderRadius: '0.5rem', fontSize: '0.72rem', width: 'auto'
+                                                                                }}
+                                                                            >ஆம், நீக்கு</button>
+                                                                            <button
+                                                                                onClick={(e) => { e.stopPropagation(); setDeleteConfirm(null); }}
+                                                                                style={{
+                                                                                    background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)',
+                                                                                    border: '1px solid rgba(255,255,255,0.1)', padding: '0.3rem 0.75rem',
+                                                                                    borderRadius: '0.5rem', fontSize: '0.72rem', width: 'auto'
+                                                                                }}
+                                                                            >வேண்டாம்</button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); setDeleteConfirm(u._id); }}
+                                                                            style={{
+                                                                                background: 'transparent', color: '#f87171',
+                                                                                border: 'none', padding: '0.3rem 0',
+                                                                                fontSize: '0.72rem', width: 'auto',
+                                                                                display: 'flex', alignItems: 'center', gap: '0.35rem',
+                                                                                opacity: 0.7
+                                                                            }}
+                                                                        >
+                                                                            <Trash2 size={13} /> பயனரை நீக்கு (Delete User)
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <div style={{ borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '0.5rem', marginTop: '0.25rem' }}>
+                                                                    <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                                        🔒 உரிமையாளர் கணக்கு — பாதுகாக்கப்பட்டது
+                                                                    </p>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </motion.div>
                                                 )}
