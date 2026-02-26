@@ -18,7 +18,7 @@ const VoiceAssistant = ({ matchData }) => {
     const [hasSupport, setHasSupport] = useState(true);
 
     const recognitionRef = useRef(null);
-    const synthesisRef = useRef(window.speechSynthesis);
+    const synthesisRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
     const audioContextRef = useRef(null);
 
     // Helper to play simple synthesized tones
@@ -56,7 +56,7 @@ const VoiceAssistant = ({ matchData }) => {
     useEffect(() => {
         // Initialize Speech Recognition once on mount
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
+        if (SpeechRecognition && typeof window !== 'undefined' && window.speechSynthesis) {
             recognitionRef.current = new SpeechRecognition();
             recognitionRef.current.continuous = false;
             recognitionRef.current.interimResults = true;
@@ -122,7 +122,9 @@ const VoiceAssistant = ({ matchData }) => {
             }, 100);
         } else {
             // Stop any ongoing speech
-            synthesisRef.current.cancel();
+            if (synthesisRef.current) {
+                synthesisRef.current.cancel();
+            }
             setIsSpeaking(false);
             setTranscript('');
             setResponse('');
@@ -142,7 +144,9 @@ const VoiceAssistant = ({ matchData }) => {
     };
 
     const stopSpeaking = () => {
-        synthesisRef.current.cancel();
+        if (synthesisRef.current) {
+            synthesisRef.current.cancel();
+        }
         setIsSpeaking(false);
     };
 
@@ -240,10 +244,14 @@ const VoiceAssistant = ({ matchData }) => {
     // Chrome sometimes requires voices to be loaded asynchronously
     useEffect(() => {
         const loadVoices = () => {
-            window.speechSynthesis.getVoices();
+            if (typeof window !== 'undefined' && window.speechSynthesis) {
+                window.speechSynthesis.getVoices();
+            }
         };
         loadVoices();
-        window.speechSynthesis.onvoiceschanged = loadVoices;
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
     }, []);
 
     if (!hasSupport) {
