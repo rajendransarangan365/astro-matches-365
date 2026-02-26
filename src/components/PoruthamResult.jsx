@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, XCircle, AlertCircle, Heart, ChevronDown, ChevronUp, Sparkles, Download, Share2, Scale } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Heart, ChevronDown, ChevronUp, Sparkles, Download, Share2, Scale, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generatePoruthamPDF } from '../utils/generatePDF';
 
