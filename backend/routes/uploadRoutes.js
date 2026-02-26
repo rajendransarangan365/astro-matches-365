@@ -1,5 +1,5 @@
 import express from 'express';
-import { upload, uploadImage, getCloudinaryUsage } from '../controllers/uploadController.js';
+import { upload, uploadImage, getCloudinaryUsage, deleteImage } from '../controllers/uploadController.js';
 import { authenticateToken, isImageAuthorized } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -9,5 +9,8 @@ router.post('/', authenticateToken, isImageAuthorized, upload.single('image'), u
 
 // Admin/Image Authorized only: get storage usage
 router.get('/usage', authenticateToken, isImageAuthorized, getCloudinaryUsage);
+
+// Admin/Image Authorized only: delete a specific image
+router.delete('/:public_id', authenticateToken, isImageAuthorized, deleteImage);
 
 export default router;

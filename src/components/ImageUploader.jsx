@@ -3,8 +3,9 @@ import { Upload, X, Loader2, HardDrive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageEditor from './ImageEditor';
 
-const ImageUploader = ({ onUploadSuccess, currentImageUrl, token }) => {
+const ImageUploader = ({ onUploadSuccess, currentImageUrl, currentImagePublicId, onDeleteSuccess, token }) => {
     const [uploading, setUploading] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState(null);
     const [stats, setStats] = useState(null);
     const [originalImage, setOriginalImage] = useState(null);
@@ -52,6 +53,11 @@ const ImageUploader = ({ onUploadSuccess, currentImageUrl, token }) => {
         const formData = new FormData();
         formData.append('image', croppedBlob, 'profile.jpg');
 
+        // Pass old public ID if we are replacing an existing image
+        if (currentImagePublicId) {
+            formData.append('oldPublicId', currentImagePublicId);
+        }
+
         try {
             const res = await fetch('/api/upload', {
                 method: 'POST',
@@ -62,11 +68,45 @@ const ImageUploader = ({ onUploadSuccess, currentImageUrl, token }) => {
             if (!res.ok) throw new Error('Upload failed');
 
             const data = await res.json();
-            onUploadSuccess(data.url);
+            onUploadSuccess(data.url, data.public_id);
         } catch (err) {
             setError(err.message);
         } finally {
             setUploading(false);
+        }
+    };
+
+    const handleDeleteImage = async () => {
+        if (!currentImagePublicId) {
+            // Just local clear if no public ID
+            if (onDeleteSuccess) onDeleteSuccess();
+            return;
+        }
+
+        if (!window.confirm("Are you sure you want to delete this profile photo?")) {
+            return;
+        }
+
+        setDeleting(true);
+        setError(null);
+        try {
+            const res = await fetch(`/api/upload/${currentImagePublicId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!res.ok) throw new Error('Failed to delete image');
+
+            if (onDeleteSuccess) {
+                onDeleteSuccess();
+            } else {
+                // Fallback if onDeleteSuccess is not provided
+                onUploadSuccess('', '');
+            }
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -123,7 +163,12 @@ const ImageUploader = ({ onUploadSuccess, currentImageUrl, token }) => {
                 justifyContent: 'center',
                 margin: '0 auto'
             }}>
-                {currentImageUrl ? (
+                {deleting ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                        <Loader2 className="animate-spin" size={24} color="var(--danger)" />
+                        <span style={{ fontSize: '0.6rem', color: 'var(--danger)' }}>DELETING</span>
+                    </div>
+                ) : currentImageUrl ? (
                     <>
                         <img
                             src={currentImageUrl}
@@ -131,7 +176,7 @@ const ImageUploader = ({ onUploadSuccess, currentImageUrl, token }) => {
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                         <button
-                            onClick={() => onUploadSuccess('')}
+                            onClick={handleDeleteImage}
                             style={{
                                 position: 'absolute',
                                 top: '5px',

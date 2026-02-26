@@ -18,11 +18,43 @@ export const uploadImage = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
+
+        // If an old image public_id was provided, delete the old image to save space
+        const { oldPublicId } = req.body;
+        if (oldPublicId) {
+            try {
+                await cloudinary.uploader.destroy(oldPublicId);
+            } catch (destroyError) {
+                console.error("Failed to destroy old image in Cloudinary:", destroyError);
+                // We proceed even if destroy fails so the new upload isn't blocked
+            }
+        }
+
         res.json({
             url: req.file.path,
             public_id: req.file.filename
         });
     } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const deleteImage = async (req, res) => {
+    try {
+        const { public_id } = req.params;
+        if (!public_id) {
+            return res.status(400).json({ message: 'Public ID is required' });
+        }
+
+        const result = await cloudinary.uploader.destroy(public_id);
+
+        if (result.result !== 'ok' && result.result !== 'not found') {
+            return res.status(400).json({ message: 'Failed to delete image from Cloudinary', result });
+        }
+
+        res.json({ message: 'Image deleted successfully', result });
+    } catch (error) {
+        console.error("Cloudinary delete error:", error);
         res.status(500).json({ message: error.message });
     }
 };

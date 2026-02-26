@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { connectToDb } from '../config/db.js';
+import cloudinary from '../config/cloudinary.js';
 
 export const saveProfile = async (req, res) => {
     try {
@@ -58,14 +59,29 @@ export const deleteProfile = async (req, res) => {
         const { profilesCollection } = await connectToDb();
         const { id } = req.params;
 
-        const result = await profilesCollection.deleteOne({
+        // Find the profile first to see if it has an imagePublicId
+        const profile = await profilesCollection.findOne({
             _id: new ObjectId(id),
             userId: new ObjectId(req.user.id)
         });
 
-        if (result.deletedCount === 0) {
+        if (!profile) {
             return res.status(404).json({ message: "Profile not found or not authorized" });
         }
+
+        // Delete from Cloudinary if there is an image
+        if (profile.profileData && profile.profileData.imagePublicId) {
+            try {
+                await cloudinary.uploader.destroy(profile.profileData.imagePublicId);
+            } catch (cloudErr) {
+                console.error("Failed to delete image from Cloudinary:", cloudErr);
+            }
+        }
+
+        const result = await profilesCollection.deleteOne({
+            _id: new ObjectId(id),
+            userId: new ObjectId(req.user.id)
+        });
 
         res.json({ message: "Profile deleted successfully" });
     } catch (err) {

@@ -111,7 +111,9 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
                 <ImageUploader
                     token={token}
                     currentImageUrl={data.imageUrl}
-                    onUploadSuccess={(url) => onChange({ ...data, imageUrl: url })}
+                    currentImagePublicId={data.imagePublicId}
+                    onUploadSuccess={(url, publicId) => onChange({ ...data, imageUrl: url, imagePublicId: publicId })}
+                    onDeleteSuccess={() => onChange({ ...data, imageUrl: '', imagePublicId: '' })}
                 />
             )}
 
