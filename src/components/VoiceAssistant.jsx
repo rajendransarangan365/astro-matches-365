@@ -262,7 +262,7 @@ const VoiceAssistant = ({ matchData }) => {
     }
 
     return (
-        <div style={{ position: 'fixed', bottom: '2rem', left: '1rem', right: '1rem', zIndex: 100, display: 'flex', justifyContent: 'flex-end', pointerEvents: 'none' }}>
+        <div style={{ position: 'fixed', bottom: '6.5rem', left: '1rem', right: '1rem', zIndex: 100, display: 'flex', justifyContent: 'flex-end', pointerEvents: 'none' }}>
             <AnimatePresence>
                 {!isExpanded && (
                     <motion.button
