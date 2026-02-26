@@ -12,6 +12,7 @@ import ForgotPassword from './components/ForgotPassword';
 import ProfileSettingsModal from './components/ProfileSettingsModal';
 import AdminDashboard from './components/AdminDashboard';
 import AdminLogin from './components/AdminLogin';
+import BackgroundEffects from './components/BackgroundEffects';
 
 import { useProfiles } from './hooks/useProfiles';
 import { usePorutham } from './hooks/usePorutham';
@@ -50,6 +51,7 @@ function App() {
 
   return (
     <>
+      <BackgroundEffects />
       <ProfileSettingsModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
