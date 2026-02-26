@@ -205,7 +205,7 @@ function App() {
           )}
 
           <footer style={{ marginTop: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.75rem', paddingBottom: '1rem' }}>
-            <p>© 2026 Tamil Marriage Matching • Made with ❤️</p>
+            <p>© 2026 Tamil Marriage Matching • Made with ❤️ RIGHT SIGHT Technologies</p>
           </footer>
         </div>
       )}
