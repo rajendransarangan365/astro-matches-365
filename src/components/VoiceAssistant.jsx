@@ -1,0 +1,404 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Mic, MicOff, Volume2, Square, Loader2, Sparkles, MessageCircle, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const VoiceAssistant = ({ matchData }) => {
+    const [isListening, setIsListening] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [transcript, setTranscript] = useState('');
+    const [response, setResponse] = useState('');
+    const [error, setError] = useState(null);
+    const [hasSupport, setHasSupport] = useState(true);
+
+    const recognitionRef = useRef(null);
+    const synthesisRef = useRef(window.speechSynthesis);
+
+    useEffect(() => {
+        // Initialize Speech Recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.continuous = false;
+            recognitionRef.current.interimResults = true;
+            // Support both Tamil & English recognition ideally, but setting a default based on typical use
+            recognitionRef.current.lang = 'ta-IN'; // Tamil (India) - can also recognize heavily accented English
+
+            recognitionRef.current.onresult = (event) => {
+                let currentTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    currentTranscript += event.results[i][0].transcript;
+                }
+                setTranscript(currentTranscript);
+            };
+
+            recognitionRef.current.onerror = (event) => {
+                console.error('Speech recognition error', event.error);
+                setError(`Microphone error: ${event.error}`);
+                setIsListening(false);
+            };
+
+            recognitionRef.current.onend = () => {
+                if (isListening) {
+                    setIsListening(false);
+                    // Automatically submit when user stops speaking if we have a transcript
+                    if (transcript.trim().length > 0) {
+                        handleAskAstrologer(transcript);
+                    }
+                }
+            };
+        } else {
+            setHasSupport(false);
+        }
+
+        return () => {
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
+            if (synthesisRef.current) {
+                synthesisRef.current.cancel();
+            }
+        };
+    }, [isListening, transcript]); // Re-bind onend handler accurately
+
+    const toggleListening = () => {
+        setError(null);
+        if (isListening) {
+            recognitionRef.current?.stop();
+            setIsListening(false);
+            if (transcript.trim().length > 0) {
+                handleAskAstrologer(transcript);
+            }
+        } else {
+            // Stop any ongoing speech
+            synthesisRef.current.cancel();
+            setIsSpeaking(false);
+            setTranscript('');
+            setResponse('');
+            try {
+                recognitionRef.current?.start();
+                setIsListening(true);
+            } catch (err) {
+                console.error("Could not start recognition", err);
+                setIsListening(false);
+            }
+        }
+    };
+
+    const stopSpeaking = () => {
+        synthesisRef.current.cancel();
+        setIsSpeaking(false);
+    };
+
+    const handleAskAstrologer = async (questionText) => {
+        if (!questionText.trim()) return;
+
+        setIsProcessing(true);
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    question: questionText,
+                    matchData: matchData
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to get response');
+            }
+
+            setResponse(data.reply);
+            speakResponse(data.reply);
+        } catch (err) {
+            console.error('Error asking astrologer:', err);
+            setError(err.message || 'கணினி ஜோதிடரைத் தொடர்பு கொள்ள முடியவில்லை (Connection Error).');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const speakResponse = (text) => {
+        if (!synthesisRef.current) return;
+
+        // Stop any current speech
+        synthesisRef.current.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+
+        let targetVoice = null;
+        let voices = synthesisRef.current.getVoices();
+
+        // Very basic heuristic: if text contains Tamil characters, try to use a Tamil voice
+        const isTamil = /[\u0B80-\u0BFF]/.test(text);
+
+        if (voices.length > 0) {
+            if (isTamil) {
+                targetVoice = voices.find(v => v.lang.includes('ta-IN')) || voices.find(v => v.lang.includes('ta'));
+            } else {
+                targetVoice = voices.find(v => v.lang.includes('en-IN')) || voices.find(v => v.lang.includes('en-US')) || voices.find(v => v.lang.includes('en'));
+            }
+        }
+
+        if (targetVoice) {
+            utterance.voice = targetVoice;
+        }
+
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => setIsSpeaking(false);
+
+        // Slow down slightly for clarity
+        utterance.rate = 0.95;
+
+        synthesisRef.current.speak(utterance);
+    };
+
+    // Chrome sometimes requires voices to be loaded asynchronously
+    useEffect(() => {
+        const loadVoices = () => {
+            window.speechSynthesis.getVoices();
+        };
+        loadVoices();
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+    }, []);
+
+    if (!hasSupport) {
+        return (
+            <div className="glass-card" style={{ marginTop: '1rem', border: '1px solid rgba(251, 191, 36, 0.3)', background: 'rgba(251, 191, 36, 0.05)' }}>
+                <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fbbf24', fontSize: '0.9rem', margin: 0 }}>
+                    <AlertCircle size={18} />
+                    உங்கள் பிரவுசரில் குரல் உதவிக்கு (Voice Assistant) அனுமதி இல்லை. குரோம் (Chrome) பிரவுசரைப் பயன்படுத்தவும்.
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="glass-card printable-card" style={{ marginTop: '1.5rem', border: '1px solid var(--primary)', background: 'rgba(168, 85, 247, 0.03)', position: 'relative', overflow: 'hidden' }}>
+            {/* Ambient Background Glow when listening or processing */}
+            <AnimatePresence>
+                {(isListening || isProcessing || isSpeaking) && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{
+                            position: 'absolute',
+                            inset: 0,
+                            background: `radial-gradient(circle at center, ${isListening ? 'rgba(239, 68, 68, 0.15)' : isProcessing ? 'rgba(56, 189, 248, 0.15)' : 'rgba(168, 85, 247, 0.15)'} 0%, transparent 70%)`,
+                            pointerEvents: 'none'
+                        }}
+                    />
+                )}
+            </AnimatePresence>
+
+            <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#c084fc' }}>
+                <Sparkles size={20} /> ஏஐ ஜோதிடர் (AI Astrologer)
+            </h3>
+
+            <p style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '1.5rem' }}>
+                இந்தப் பொருத்தம் குறித்து உங்களுக்கு ஏதேனும் சந்தேகம் உள்ளதா? மைக்கை அழுத்தித் தமிழில் கேட்கவும்.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+
+                {/* Visualizer / Transcript Area */}
+                <div style={{
+                    width: '100%',
+                    minHeight: '120px',
+                    background: 'rgba(0,0,0,0.3)',
+                    borderRadius: '1rem',
+                    padding: '1.5rem',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    position: 'relative',
+                    overflow: 'hidden'
+                }}>
+
+                    {/* Modern Visualizer Animation */}
+                    <AnimatePresence>
+                        {(isListening || isProcessing || isSpeaking) && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: '60px' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px',
+                                    marginBottom: '1rem',
+                                    width: '100%'
+                                }}
+                            >
+                                {[...Array(10)].map((_, i) => (
+                                    <motion.div
+                                        key={i}
+                                        animate={{
+                                            height: isProcessing ? ['20%', '80%', '20%'] :
+                                                isSpeaking ? ['20%', `${Math.random() * 60 + 40}%`, '20%'] :
+                                                    isListening ? ['10%', `${Math.random() * 80 + 20}%`, '10%'] : '10%',
+                                        }}
+                                        transition={{
+                                            repeat: Infinity,
+                                            duration: isProcessing ? 1.5 : isSpeaking ? 0.3 + Math.random() * 0.2 : 0.4 + Math.random() * 0.3,
+                                            delay: i * 0.05,
+                                            ease: "easeInOut"
+                                        }}
+                                        style={{
+                                            width: '8px',
+                                            borderRadius: '4px',
+                                            background: isListening ? '#38bdf8' : isProcessing ? '#c084fc' : '#34d399',
+                                            boxShadow: `0 0 10px ${isListening ? '#38bdf8' : isProcessing ? '#c084fc' : '#34d399'}`
+                                        }}
+                                    />
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {!transcript && !response && !error && !isListening && !isProcessing && (
+                        <span style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.9rem' }}>
+                            "இந்த ஜாதகத்தில் ரஜ்ஜுப் பொருத்தம் எப்படி உள்ளது?"
+                        </span>
+                    )}
+
+                    {transcript && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            style={{ color: '#e2e8f0', fontSize: '1rem', marginBottom: response ? '1rem' : '0', zIndex: 2 }}
+                        >
+                            "{transcript}"
+                        </motion.div>
+                    )}
+
+                    {error && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            style={{ color: '#f87171', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 2 }}
+                        >
+                            <AlertCircle size={16} /> {error}
+                        </motion.div>
+                    )}
+
+                    {isProcessing && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#c084fc', fontSize: '0.95rem', zIndex: 2 }}>
+                            <span>ஜோதிடர் ஆராய்கிறார்... (Analyzing)</span>
+                        </div>
+                    )}
+
+                    {response && !isProcessing && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            style={{
+                                color: '#c084fc',
+                                fontSize: '1.05rem',
+                                padding: '1rem',
+                                background: 'rgba(168, 85, 247, 0.1)',
+                                borderRadius: '0.5rem',
+                                borderLeft: '3px solid #c084fc',
+                                textAlign: 'left',
+                                width: '100%',
+                                display: 'flex',
+                                gap: '0.75rem',
+                                alignItems: 'flex-start'
+                            }}
+                        >
+                            <MessageCircle size={20} style={{ flexShrink: 0, marginTop: '0.2rem' }} />
+                            <div style={{ lineHeight: '1.6' }}>{response}</div>
+                        </motion.div>
+                    )}
+                </div>
+
+                {/* Controls Area */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={toggleListening}
+                        disabled={isProcessing || isSpeaking}
+                        style={{
+                            width: '4.5rem',
+                            height: '4.5rem',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: 'none',
+                            background: isListening ? '#0f172a' : 'var(--primary)',
+                            color: isListening ? '#38bdf8' : 'white',
+                            cursor: (isProcessing || isSpeaking) ? 'not-allowed' : 'pointer',
+                            opacity: (isProcessing || isSpeaking) ? 0.5 : 1,
+                            boxShadow: isListening
+                                ? '0 0 25px rgba(56, 189, 248, 0.5), inset 0 0 15px rgba(56, 189, 248, 0.3)'
+                                : '0 0 15px rgba(168, 85, 247, 0.4)',
+                            transition: 'all 0.3s ease',
+                            border: isListening ? '2px solid rgba(56, 189, 248, 0.5)' : 'none'
+                        }}
+                    >
+                        {isListening ? <Mic size={32} /> : <Mic size={28} />}
+                    </motion.button>
+
+                    {isSpeaking && (
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={stopSpeaking}
+                            style={{
+                                width: '3rem',
+                                height: '3rem',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '1px solid #94a3b8',
+                                background: 'rgba(255,255,255,0.1)',
+                                color: '#cbd5e1',
+                                cursor: 'pointer',
+                            }}
+                            title="Stop speaking"
+                        >
+                            <Square size={18} fill="currentColor" />
+                        </motion.button>
+                    )}
+                </div>
+
+                {isListening && (
+                    <motion.div
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{ repeat: Infinity, duration: 1.5 }}
+                        style={{ color: '#38bdf8', fontSize: '0.85rem', fontWeight: '500', letterSpacing: '1px' }}
+                    >
+                        பேசுங்கள்... (Speak now)
+                    </motion.div>
+                )}
+
+                {isSpeaking && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#34d399', fontSize: '0.85rem', fontWeight: '500' }}
+                    >
+                        <Volume2 size={16} /> ஜோதிடர் கூறுகிறார்...
+                    </motion.div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default VoiceAssistant;

@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './backend/routes/authRoutes.js';
 import matchRoutes from './backend/routes/matchRoutes.js';
 import profileRoutes from './backend/routes/profileRoutes.js';
-
+import chatRoutes from './backend/routes/chatRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -19,7 +19,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/profiles', profileRoutes);
-
+app.use('/api/chat', chatRoutes);
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
