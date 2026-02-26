@@ -36,43 +36,45 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: 'rgba(0,0,0,0.8)',
+                background: 'rgba(0,0,0,0.85)',
                 zIndex: 10000,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '1rem',
-                backdropFilter: 'blur(8px)'
+                padding: '0.5rem',
+                backdropFilter: 'blur(10px)'
             }}
         >
             <motion.div
-                initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
                 style={{
                     width: '100%',
-                    maxWidth: '500px',
-                    maxHeight: '90vh',
-                    background: 'var(--bg-card, #1a1b1e)',
-                    borderRadius: '1.5rem',
+                    maxWidth: '450px',
+                    maxHeight: 'calc(100vh - 1rem)',
+                    background: '#1a1b1e',
+                    borderRadius: '1.25rem',
                     overflow: 'hidden',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
                     display: 'flex',
                     flexDirection: 'column',
-                    border: '1px solid rgba(255,255,255,0.1)'
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    position: 'relative'
                 }}
             >
                 {/* Header */}
                 <div style={{
-                    padding: '1.25rem 1.5rem',
+                    padding: '1rem 1.25rem',
                     borderBottom: '1px solid rgba(255,255,255,0.05)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    flexShrink: 0
                 }}>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'white' }}>Edit Photo</h3>
+                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'white' }}>Edit Photo</h3>
                     <button
                         onClick={onCancel}
-                        style={{ padding: '0.5rem', background: 'transparent', color: 'rgba(255,255,255,0.5)' }}
+                        style={{ padding: '0.4rem', background: 'transparent', color: 'rgba(255,255,255,0.5)', border: 'none', cursor: 'pointer' }}
                     >
                         <X size={20} />
                     </button>
@@ -81,10 +83,12 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                 {/* Editor Area */}
                 <div style={{
                     position: 'relative',
-                    flex: 1,
-                    minHeight: '300px',
+                    width: '100%',
+                    height: '35vh',
+                    minHeight: '260px',
                     maxHeight: '400px',
-                    background: '#000'
+                    background: '#000',
+                    flexShrink: 0
                 }}>
                     <Cropper
                         image={image}
@@ -99,10 +103,15 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                 </div>
 
                 {/* Controls Area */}
-                <div style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{
+                    padding: '1.25rem',
+                    background: 'rgba(255,255,255,0.03)',
+                    overflowY: 'auto',
+                    flex: 1
+                }}>
                     {/* Zoom Control */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem' }}>
-                        <ZoomOut size={16} color="rgba(255,255,255,0.4)" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                        <ZoomOut size={14} color="rgba(255,255,255,0.4)" />
                         <input
                             type="range"
                             value={zoom}
@@ -111,14 +120,14 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                             step={0.1}
                             aria-labelledby="Zoom"
                             onChange={(e) => setZoom(parseFloat(e.target.value))}
-                            style={{ flex: 1, accentColor: 'var(--primary, #3b82f6)' }}
+                            style={{ flex: 1, accentColor: '#3b82f6', height: '4px' }}
                         />
-                        <ZoomIn size={16} color="rgba(255,255,255,0.4)" />
+                        <ZoomIn size={14} color="rgba(255,255,255,0.4)" />
                     </div>
 
                     {/* Rotation Control */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                        <RotateCcw size={16} color="rgba(255,255,255,0.4)" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                        <RotateCcw size={14} color="rgba(255,255,255,0.4)" />
                         <input
                             type="range"
                             value={rotation}
@@ -127,32 +136,53 @@ const ImageEditor = ({ image, onCropComplete, onCancel }) => {
                             step={1}
                             aria-labelledby="Rotation"
                             onChange={(e) => setRotation(parseFloat(e.target.value))}
-                            style={{ flex: 1, accentColor: 'var(--primary, #3b82f6)' }}
+                            style={{ flex: 1, accentColor: '#3b82f6', height: '4px' }}
                         />
                     </div>
 
                     {/* Actions */}
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
                         <button
                             onClick={onCancel}
-                            className="btn-sm btn-outline"
-                            style={{ flex: 1, height: '44px' }}
+                            style={{
+                                flex: 1,
+                                height: '40px',
+                                borderRadius: '0.75rem',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                background: 'transparent',
+                                color: 'white',
+                                fontSize: '0.9rem',
+                                cursor: 'pointer'
+                            }}
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleConfirm}
-                            className="btn-sm"
-                            style={{ flex: 1, height: '44px', background: 'var(--primary, #3b82f6)', color: 'white' }}
+                            style={{
+                                flex: 1,
+                                height: '40px',
+                                borderRadius: '0.75rem',
+                                border: 'none',
+                                background: '#3b82f6',
+                                color: 'white',
+                                fontSize: '0.9rem',
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                cursor: 'pointer'
+                            }}
                         >
-                            <Check size={18} style={{ marginRight: '0.5rem' }} /> Apply
+                            <Check size={18} /> Apply
                         </button>
                     </div>
 
                     <p style={{
                         margin: '1rem 0 0',
                         color: 'rgba(255,255,255,0.3)',
-                        fontSize: '0.75rem',
+                        fontSize: '0.7rem',
                         textAlign: 'center'
                     }}>
                         Drag to reposition • Pinch to zoom
