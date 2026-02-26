@@ -387,30 +387,35 @@ const VoiceAssistant = ({ matchData }) => {
                             <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#c084fc', fontSize: 'clamp(0.9rem, 3.5vw, 1.1rem)', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>
                                 <Wand2 size={18} style={{ flexShrink: 0 }} /> ஏஐ ஜோதிடர் (AI Astrologer)
                             </h3>
-                            <button
+                            <motion.button
+                                whileHover={{ scale: 1.1, backgroundColor: 'rgba(239, 68, 68, 0.8)', borderColor: 'rgba(239, 68, 68, 1)' }}
+                                whileTap={{ scale: 0.9 }}
                                 onClick={() => setIsExpanded(false)}
+                                title="Close"
+                                aria-label="Close Voice Assistant"
                                 style={{
-                                    width: '28px',
-                                    minWidth: '28px',
-                                    height: '28px',
+                                    width: '36px',
+                                    minWidth: '36px',
+                                    height: '36px',
                                     padding: 0,
                                     margin: 0,
-                                    borderRadius: '6px',
+                                    borderRadius: '50%',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    background: 'rgba(255, 255, 255, 0.08)',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    color: '#94a3b8',
+                                    background: 'rgba(255, 255, 255, 0.15)',
+                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                    color: 'white',
                                     cursor: 'pointer',
                                     flexShrink: 0,
                                     lineHeight: 0,
-                                    boxShadow: 'none',
-                                    transform: 'none',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                    transition: 'background-color 0.2s, border-color 0.2s',
+                                    zIndex: 10
                                 }}
                             >
-                                <X size={14} />
-                            </button>
+                                <X size={20} strokeWidth={2.5} />
+                            </motion.button>
                         </div>
 
                         {/* Ambient Background Glow when listening or processing */}
