@@ -17,6 +17,7 @@
     "@google/genai": "^1.43.0",
     "astronomia": "^4.2.0",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
@@ -28,8 +29,11 @@
     "lucide-react": "^0.575.0",
     "luxon": "^3.7.2",
     "mongodb": "^7.1.0",
+    "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-easy-crop": "^5.5.6",
     "vedic-astro": "^0.1.1"
   },
   "devDependencies": {

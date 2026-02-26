@@ -23,6 +23,7 @@ export const protect = async (req, res, next) => {
 
             const { password, ...userWithoutPassword } = user;
             userWithoutPassword.id = user._id.toString();
+            userWithoutPassword.isAdmin = user.isAdmin || false; // Ensure isAdmin is available
             req.user = userWithoutPassword;
 
             next();
@@ -32,5 +33,16 @@ export const protect = async (req, res, next) => {
         }
     } else {
         res.status(401).json({ message: 'அங்கீகரிக்கப்படவில்லை, டோக்கன் இல்லை' });
+    }
+};
+
+// Alias for protect to match existing route patterns if needed
+export const authenticateToken = protect;
+
+export const isAdmin = (req, res, next) => {
+    if (req.user && req.user.isAdmin) {
+        next();
+    } else {
+        res.status(403).json({ message: 'நிர்வாகிகளுக்கு மட்டுமே அனுமதி' });
     }
 };

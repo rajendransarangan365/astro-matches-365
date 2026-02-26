@@ -4,6 +4,8 @@ import { User, Star, Moon, BarChart3, ChevronDown, ChevronUp, MapPin, Calendar, 
 import ChartInput from './ChartInput';
 import SearchableSelect from './SearchableSelect';
 import { calculateAstroDetails } from '../utils/astroUtils';
+import { useAuth } from '../context/AuthContext';
+import ImageUploader from './ImageUploader';
 
 const CITIES = [
     "Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem",
@@ -18,6 +20,8 @@ const CITIES = [
 const CITY_OPTIONS = CITIES.map(c => ({ value: c, label: c }));
 
 const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile, onDeleteProfile, saveStatus }) => {
+    const { user, token } = useAuth();
+    const isAdmin = user && user.isAdmin;
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [calculating, setCalculating] = useState(false);
 
@@ -91,7 +95,8 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
                         onChange={(val) => {
                             const selectedProfile = profiles.find(p => p._id === val);
                             if (selectedProfile) {
-                                onChange({ ...selectedProfile.profileData });
+                                // Include the _id in the data passed to onChange so we can use it for updates
+                                onChange({ ...selectedProfile.profileData, _id: selectedProfile._id });
                             }
                         }}
                         placeholder="-- சேமிக்கப்பட்ட தகவல் தேடு --"
@@ -99,6 +104,15 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
                         onDelete={onDeleteProfile}
                     />
                 </div>
+            )}
+
+            {/* Image Uploader (Admin Only) */}
+            {isAdmin && (
+                <ImageUploader
+                    token={token}
+                    currentImageUrl={data.imageUrl}
+                    onUploadSuccess={(url) => onChange({ ...data, imageUrl: url })}
+                />
             )}
 
             {/* Form Fields */}
@@ -180,7 +194,7 @@ const PersonForm = ({ title, data, onChange, type, profiles = [], onSaveProfile,
                     {onSaveProfile && (
                         <button
                             className="btn-sm btn-outline"
-                            onClick={() => onSaveProfile(type, data)}
+                            onClick={() => onSaveProfile(type, data, data._id)}
                             disabled={saveStatus === 'saving'}
                             style={{ flex: 1 }}
                         >

@@ -21,7 +21,7 @@ export const useProfiles = (token) => {
         fetchProfiles();
     }, [fetchProfiles]);
 
-    const handleSaveProfile = async (type, profileData) => {
+    const handleSaveProfile = async (type, profileData, id = null) => {
         if (!profileData.name || !profileData.dob) {
             alert("தயவுசெய்து பெயர் மற்றும் பிறந்த தேதியை நிரப்பவும் (Please fill Name and DOB to save)");
             return;
@@ -31,7 +31,7 @@ export const useProfiles = (token) => {
         try {
             await fetchWithToken('/api/profiles', token, {
                 method: 'POST',
-                body: JSON.stringify({ type, profileData })
+                body: JSON.stringify({ type, profileData, id })
             });
             setProfileSaveStatus({ type, status: 'success' });
             fetchProfiles(); // Refresh the list

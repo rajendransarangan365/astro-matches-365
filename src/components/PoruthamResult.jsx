@@ -74,7 +74,29 @@ const PoruthamResult = ({ data }) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
             >
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2rem', marginBottom: '1.5rem' }}>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: '50%',
+                            border: '3px solid #f472b6',
+                            overflow: 'hidden',
+                            background: 'rgba(244, 114, 182, 0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 0 20px rgba(244, 114, 182, 0.2)'
+                        }}>
+                            {bride.imageUrl ? (
+                                <img src={bride.imageUrl} alt="Bride" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                                <User size={40} color="#f472b6" style={{ opacity: 0.5 }} />
+                            )}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#f472b6', marginTop: '0.5rem', fontWeight: 'bold' }}>பெண்</div>
+                    </div>
+
                     {canMarry ? (
                         <motion.div
                             animate={{ scale: [1, 1.2, 1] }}
@@ -83,8 +105,30 @@ const PoruthamResult = ({ data }) => {
                             <Heart size={48} fill="#ef4444" color="#ef4444" />
                         </motion.div>
                     ) : (
-                        <AlertCircle size={48} />
+                        <AlertCircle size={48} color="#f87171" />
                     )}
+
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: '50%',
+                            border: '3px solid #60a5fa',
+                            overflow: 'hidden',
+                            background: 'rgba(96, 165, 250, 0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 0 20px rgba(96, 165, 250, 0.2)'
+                        }}>
+                            {groom.imageUrl ? (
+                                <img src={groom.imageUrl} alt="Groom" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                                <User size={40} color="#60a5fa" style={{ opacity: 0.5 }} />
+                            )}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#60a5fa', marginTop: '0.5rem', fontWeight: 'bold' }}>ஆண்</div>
+                    </div>
                 </div>
                 <h2 style={{ color: canMarry ? '#4ade80' : '#f87171' }}>
                     {canMarry ? 'பொருத்தம் உண்டு' : 'பொருத்தம் இல்லை'}

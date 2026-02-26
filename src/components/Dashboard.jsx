@@ -91,6 +91,11 @@ const Dashboard = ({ savedBrides, savedGrooms, savedMatches, onBack }) => {
                                         <option key={b._id} value={b._id} style={{ color: 'black', background: 'white' }}>{b.profileData.name} ({b.profileData.rasiId ? 'கட்டம் கணக்கிடப்பட்டது' : 'நட்சத்திரம் மட்டும்'})</option>
                                     ))}
                                 </select>
+                                {savedBrides.find(b => b._id === quickMatchBride)?.profileData.imageUrl && (
+                                    <div style={{ marginTop: '0.5rem', width: '60px', height: '60px', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid rgba(244, 114, 182, 0.3)', margin: '0.5rem auto 0' }}>
+                                        <img src={savedBrides.find(b => b._id === quickMatchBride).profileData.imageUrl} alt="Bride" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    </div>
+                                )}
                             </div>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', color: '#60a5fa', fontWeight: 'bold' }}>ஆண் (Groom)</label>
@@ -101,9 +106,14 @@ const Dashboard = ({ savedBrides, savedGrooms, savedMatches, onBack }) => {
                                 >
                                     <option value="" style={{ color: 'black', background: 'white' }}>தேர்ந்தெடுக்கவும்...</option>
                                     {savedGrooms.map(g => (
-                                        <option key={g._id} value={g._id} style={{ color: 'black', background: 'white' }}>{g.profileData.name} ({g.profileData.rasiId ? 'கட்டம் கணக்கிடப்பட்டது' : 'நட்சத்திரம் மட்டும்'})</option>
+                                        <option key={g._id} value={g._id} style={{ color: 'black', background: 'white' }}>{g.profileData.name} ({g.profileData.rasiId ? 'கட்டம் கணக்கிடப்பட்டது' : 'நጀመሪያம் மட்டும்'})</option>
                                     ))}
                                 </select>
+                                {savedGrooms.find(g => g._id === quickMatchGroom)?.profileData.imageUrl && (
+                                    <div style={{ marginTop: '0.5rem', width: '60px', height: '60px', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid rgba(96, 165, 250, 0.3)', margin: '0.5rem auto 0' }}>
+                                        <img src={savedGrooms.find(g => g._id === quickMatchGroom).profileData.imageUrl} alt="Groom" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -153,14 +163,26 @@ const Dashboard = ({ savedBrides, savedGrooms, savedMatches, onBack }) => {
                                         transition: 'all 0.2s'
                                     }}
                                 >
-                                    <div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                                            <span style={{ color: '#f472b6', fontWeight: 'bold' }}>{match.brideName}</span>
-                                            <span style={{ color: 'var(--text-secondary)' }}>&times;</span>
-                                            <span style={{ color: '#60a5fa', fontWeight: 'bold' }}>{match.groomName}</span>
-                                        </div>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                            <Calendar size={12} /> {new Date(match.createdAt).toLocaleDateString()}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                        {((match.brideData?.imageUrl || match.groomData?.imageUrl)) && (
+                                            <div style={{ display: 'flex', position: 'relative', width: '45px', height: '30px', flexShrink: 0 }}>
+                                                {match.brideData?.imageUrl && (
+                                                    <img src={match.brideData.imageUrl} alt="B" style={{ width: '30px', height: '30px', borderRadius: '50%', border: '2px solid #f472b6', objectFit: 'cover', position: 'absolute', left: 0, zIndex: 2 }} />
+                                                )}
+                                                {match.groomData?.imageUrl && (
+                                                    <img src={match.groomData.imageUrl} alt="G" style={{ width: '30px', height: '30px', borderRadius: '50%', border: '2px solid #60a5fa', objectFit: 'cover', position: 'absolute', left: '15px', zIndex: 1 }} />
+                                                )}
+                                            </div>
+                                        )}
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                                <span style={{ color: '#f472b6', fontWeight: 'bold' }}>{match.brideName}</span>
+                                                <span style={{ color: 'var(--text-secondary)' }}>&times;</span>
+                                                <span style={{ color: '#60a5fa', fontWeight: 'bold' }}>{match.groomName}</span>
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                <Calendar size={12} /> {new Date(match.createdAt).toLocaleDateString()}
+                                            </div>
                                         </div>
                                     </div>
                                     <div style={{

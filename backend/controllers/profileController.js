@@ -4,21 +4,33 @@ import { connectToDb } from '../config/db.js';
 export const saveProfile = async (req, res) => {
     try {
         const { profilesCollection } = await connectToDb();
-        const { type, profileData } = req.body;
+        const { type, profileData, id } = req.body;
 
         if (!type || !profileData) {
             return res.status(400).json({ message: "Type and profileData are required" });
         }
 
-        const dataToInsert = {
+        const dataToSave = {
             userId: new ObjectId(req.user.id),
             type, // 'bride' or 'groom'
             profileData,
-            createdAt: new Date()
+            updatedAt: new Date()
         };
 
-        const result = await profilesCollection.insertOne(dataToInsert);
-        res.status(201).json(result);
+        let result;
+        if (id) {
+            // Update existing
+            result = await profilesCollection.updateOne(
+                { _id: new ObjectId(id), userId: new ObjectId(req.user.id) },
+                { $set: { ...dataToSave } }
+            );
+            res.json({ message: "Profile updated successfully", result });
+        } else {
+            // Insert new
+            dataToSave.createdAt = new Date();
+            result = await profilesCollection.insertOne(dataToSave);
+            res.status(201).json(result);
+        }
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
