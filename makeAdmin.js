@@ -17,13 +17,19 @@ async function run() {
         const db = client.db("astro365");
         const usersCollection = db.collection("users");
 
-        // Update all users to be an admin for testing purposes
-        const result = await usersCollection.updateMany(
+        // 1. Remove admin rights from everyone
+        const removeResult = await usersCollection.updateMany(
             {},
+            { $set: { isAdmin: false, canUseVoiceAssistant: false } }
+        );
+        console.log(`Removed admin rights from ${removeResult.modifiedCount} users.`);
+
+        // 2. Grant admin rights ONLY to sarangan365@gmail.com
+        const grantResult = await usersCollection.updateOne(
+            { email: "sarangan365@gmail.com" },
             { $set: { isAdmin: true, canUseVoiceAssistant: true } }
         );
-
-        console.log(`Updated ${result.modifiedCount} users to be admins.`);
+        console.log(`Granted admin rights to ${grantResult.modifiedCount} user (sarangan365@gmail.com).`);
     } finally {
         await client.close();
     }
