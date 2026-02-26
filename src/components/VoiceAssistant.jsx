@@ -148,10 +148,6 @@ const VoiceAssistant = ({ matchData }) => {
 
     const handleAskAstrologer = async (questionText) => {
         if (!questionText.trim()) return;
-        if (usageCount >= MAX_FREE_QUESTIONS) {
-            setError('இன்றைய இலவச கேள்விகள் முடிந்துவிட்டன. (Daily limit reached)');
-            return;
-        }
 
         setIsProcessing(true);
         try {
@@ -210,12 +206,35 @@ const VoiceAssistant = ({ matchData }) => {
 
         utterance.onstart = () => setIsSpeaking(true);
         utterance.onend = () => setIsSpeaking(false);
-        utterance.onerror = () => setIsSpeaking(false);
+        utterance.onerror = (e) => {
+            console.error('SpeechSynthesis Error:', e);
+            setIsSpeaking(false);
+            setError('குரல் பதிவில் பிழை. (Voice playback error)');
+        };
 
         // Slow down slightly for clarity
         utterance.rate = 0.95;
 
-        synthesisRef.current.speak(utterance);
+        try {
+            // Workaround for Chrome bug where speech synthesis gets stuck
+            if (synthesisRef.current.paused) {
+                synthesisRef.current.resume();
+            }
+            synthesisRef.current.speak(utterance);
+
+            // Another Chrome workaround: SpeechSynthesis sometimes silently drops utterances 
+            // if they are longer than ~15 seconds, so we ensure it's "awake".
+            const resumeIfStuck = setInterval(() => {
+                if (synthesisRef.current.speaking && !synthesisRef.current.paused) {
+                    synthesisRef.current.resume();
+                } else if (!synthesisRef.current.speaking && !synthesisRef.current.pending) {
+                    clearInterval(resumeIfStuck);
+                }
+            }, 10000);
+
+        } catch (err) {
+            console.error('Speak throw error:', err);
+        }
     };
 
     // Chrome sometimes requires voices to be loaded asynchronously
