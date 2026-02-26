@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Volume2, Square, Loader2, Sparkles, MessageCircle, AlertCircle, X } from 'lucide-react';
+import { Mic, MicOff, Volume2, Square, Loader2, Sparkles, MessageCircle, AlertCircle, X, Wand2, Stars } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
@@ -262,34 +262,101 @@ const VoiceAssistant = ({ matchData }) => {
     }
 
     return (
-        <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 100 }}>
+        <div style={{ position: 'fixed', bottom: '2rem', left: '1rem', right: '1rem', zIndex: 100, display: 'flex', justifyContent: 'flex-end', pointerEvents: 'none' }}>
             <AnimatePresence>
                 {!isExpanded && (
                     <motion.button
                         initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
+                        animate={{
+                            scale: 1,
+                            opacity: 1,
+                            y: [0, -10, 0]
+                        }}
+                        transition={{
+                            y: {
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            },
+                            scale: { duration: 0.3 },
+                            opacity: { duration: 0.3 }
+                        }}
                         exit={{ scale: 0, opacity: 0 }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => setIsExpanded(true)}
                         style={{
-                            width: '4rem',
-                            height: '4rem',
+                            width: '4.5rem',
+                            height: '4.5rem',
                             borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            border: 'none',
-                            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', // Orange gradient
+                            border: '2px solid rgba(245, 158, 11, 0.5)',
+                            background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
                             color: 'white',
                             cursor: 'pointer',
-                            boxShadow: '0 4px 20px rgba(245, 158, 11, 0.5), inset 0 2px 4px rgba(255,255,255,0.3)',
-                            position: 'absolute',
-                            bottom: '0',
-                            right: '0'
+                            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.5), inset 0 2px 4px rgba(255,255,255,0.3), 0 0 15px rgba(168, 85, 247, 0.4)',
+                            pointerEvents: 'auto',
+                            position: 'relative',
+                            overflow: 'hidden'
                         }}
                     >
-                        <Sparkles size={28} />
+                        {/* Internal Glow Effect */}
+                        <motion.div
+                            animate={{
+                                opacity: [0.3, 0.6, 0.3],
+                                scale: [1, 1.2, 1],
+                            }}
+                            transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
+                            style={{
+                                position: 'absolute',
+                                width: '100%',
+                                height: '100%',
+                                background: 'radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%)',
+                                pointerEvents: 'none'
+                            }}
+                        />
+
+                        <div style={{ position: 'relative', zIndex: 1 }}>
+                            <motion.div
+                                animate={{
+                                    rotate: [0, 10, -10, 0],
+                                }}
+                                transition={{
+                                    duration: 4,
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                }}
+                            >
+                                <Wand2 size={32} />
+                            </motion.div>
+
+                            <motion.div
+                                animate={{
+                                    opacity: [0, 1, 0],
+                                    scale: [0.5, 1, 0.5],
+                                }}
+                                transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    ease: "easeInOut",
+                                    delay: 0.5
+                                }}
+                                style={{
+                                    position: 'absolute',
+                                    top: '-4px',
+                                    right: '-4px',
+                                    color: '#f59e0b'
+                                }}
+                            >
+                                <Stars size={14} />
+                            </motion.div>
+                        </div>
                     </motion.button>
                 )}
             </AnimatePresence>
@@ -303,31 +370,48 @@ const VoiceAssistant = ({ matchData }) => {
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                         className="glass-card"
                         style={{
-                            width: '350px',
+                            width: '100%',
+                            maxWidth: '350px',
+                            boxSizing: 'border-box',
                             border: '1px solid var(--primary)',
                             background: 'rgba(15, 23, 42, 0.95)',
                             position: 'relative',
                             overflow: 'hidden',
                             boxShadow: '0 10px 40px rgba(0,0,0,0.5), 0 0 20px rgba(168, 85, 247, 0.2)',
-                            backdropFilter: 'blur(12px)'
+                            backdropFilter: 'blur(12px)',
+                            pointerEvents: 'auto'
                         }}
                     >
-                        {/* Close button */}
-                        <button
-                            onClick={() => setIsExpanded(false)}
-                            style={{
-                                position: 'absolute',
-                                top: '1rem',
-                                right: '1rem',
-                                background: 'transparent',
-                                border: 'none',
-                                color: '#94a3b8',
-                                cursor: 'pointer',
-                                zIndex: 10
-                            }}
-                        >
-                            <X size={20} />
-                        </button>
+                        {/* Header row with title and close button */}
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#c084fc', fontSize: 'clamp(0.9rem, 3.5vw, 1.1rem)', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>
+                                <Wand2 size={18} style={{ flexShrink: 0 }} /> ஏஐ ஜோதிடர் (AI Astrologer)
+                            </h3>
+                            <button
+                                onClick={() => setIsExpanded(false)}
+                                style={{
+                                    width: '28px',
+                                    minWidth: '28px',
+                                    height: '28px',
+                                    padding: 0,
+                                    margin: 0,
+                                    borderRadius: '6px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: 'rgba(255, 255, 255, 0.08)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    color: '#94a3b8',
+                                    cursor: 'pointer',
+                                    flexShrink: 0,
+                                    lineHeight: 0,
+                                    boxShadow: 'none',
+                                    transform: 'none',
+                                }}
+                            >
+                                <X size={14} />
+                            </button>
+                        </div>
 
                         {/* Ambient Background Glow when listening or processing */}
                         <AnimatePresence>
@@ -346,11 +430,7 @@ const VoiceAssistant = ({ matchData }) => {
                             )}
                         </AnimatePresence>
 
-                        <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#c084fc' }}>
-                            <Sparkles size={20} /> ஏஐ ஜோதிடர் (AI Astrologer)
-                        </h3>
-
-                        <p style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '1.5rem' }}>
+                        <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '1.25rem', wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: 1.5 }}>
                             இந்தப் பொருத்தம் குறித்து உங்களுக்கு ஏதேனும் சந்தேகம் உள்ளதா? மைக்கை அழுத்தித் தமிழில் கேட்கவும்.
                         </p>
 
@@ -453,13 +533,16 @@ const VoiceAssistant = ({ matchData }) => {
                                         animate={{ opacity: 1, y: 0 }}
                                         style={{
                                             color: '#c084fc',
-                                            fontSize: '1.05rem',
-                                            padding: '1rem',
+                                            fontSize: '0.95rem',
+                                            padding: '0.75rem',
                                             background: 'rgba(168, 85, 247, 0.1)',
                                             borderRadius: '0.5rem',
                                             borderLeft: '3px solid #c084fc',
                                             textAlign: 'left',
                                             width: '100%',
+                                            boxSizing: 'border-box',
+                                            wordBreak: 'break-word',
+                                            overflowWrap: 'break-word',
                                             display: 'flex',
                                             gap: '0.75rem',
                                             alignItems: 'flex-start'
@@ -485,7 +568,6 @@ const VoiceAssistant = ({ matchData }) => {
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        border: 'none',
                                         background: isListening ? '#0f172a' : 'var(--primary)',
                                         color: isListening ? '#38bdf8' : 'white',
                                         cursor: (isProcessing || isSpeaking) ? 'not-allowed' : 'pointer',

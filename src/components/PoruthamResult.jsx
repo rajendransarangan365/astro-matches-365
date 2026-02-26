@@ -1,8 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { CheckCircle2, XCircle, AlertCircle, Heart, ChevronDown, ChevronUp, Sparkles, Download, Share2, Scale } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import { generatePoruthamPDF } from '../utils/generatePDF';
 
 import RasiKattam from './RasiKattam';
 import VoiceAssistant from './VoiceAssistant';
@@ -10,7 +9,6 @@ import VoiceAssistant from './VoiceAssistant';
 const PoruthamResult = ({ data }) => {
     const [showDetails, setShowDetails] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
-    const reportRef = useRef(null);
 
     if (!data) return null;
 
@@ -18,92 +16,14 @@ const PoruthamResult = ({ data }) => {
 
     const handleDownloadPDF = async (e) => {
         e.stopPropagation();
-        if (!reportRef.current) return;
-
-        // Ensure details are visible for capturing
-        const wasHidden = !showDetails;
-        if (wasHidden) setShowDetails(true);
-
         setIsDownloading(true);
-
         try {
-            // Give React a moment to render the expanded details
-            await new Promise(resolve => setTimeout(resolve, 800));
-
-            const element = reportRef.current;
-            element.classList.add('pdf-export-mode');
-
-            // Temporarily hide buttons for capture
-            const buttons = element.querySelectorAll('button');
-            buttons.forEach(btn => btn.style.display = 'none');
-
-            // Force background to white for capture to avoid dark mode conflicts
-            const originalBg = element.style.background;
-            element.style.background = '#ffffff';
-
-            const canvas = await html2canvas(element, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff'
-            });
-
-            // Cleanup DOM modifications
-            element.style.background = originalBg;
-            element.classList.remove('pdf-export-mode');
-            buttons.forEach(btn => btn.style.display = '');
-
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-
-            // Generate Multipage A4 PDF with borders
-            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-
-            const margin = 12; // 12mm professional margin
-            const contentWidth = pdfWidth;
-
-            const imgProps = pdf.getImageProperties(imgData);
-            // Calculate how tall the image will be when scaled to A4 width
-            const imgHeightInMm = (imgProps.height * contentWidth) / imgProps.width;
-
-            let heightLeft = imgHeightInMm;
-            let position = 0; // Start at exact top edge of the PDF page
-
-            // Helper function to draw a neat white clipping mask around the borders
-            const drawMaskAndBorder = () => {
-                pdf.setFillColor(255, 255, 255);
-                pdf.rect(0, 0, pdfWidth, margin, 'F'); // Top margin
-                pdf.rect(0, pdfHeight - margin, pdfWidth, margin, 'F'); // Bottom margin
-                pdf.rect(0, 0, margin, pdfHeight, 'F'); // Left margin
-                pdf.rect(pdfWidth - margin, 0, margin, pdfHeight, 'F'); // Right margin
-
-                // Draw crisp black border line
-                pdf.setDrawColor(0, 0, 0);
-                pdf.setLineWidth(0.5);
-                pdf.rect(margin, margin, pdfWidth - 2 * margin, pdfHeight - 2 * margin);
-            };
-
-            // Page 1
-            pdf.addImage(imgData, 'JPEG', 0, position, contentWidth, imgHeightInMm);
-            drawMaskAndBorder();
-            heightLeft -= pdfHeight;
-
-            // Subsequent Pages
-            while (heightLeft > 0) {
-                position -= pdfHeight; // Shift image tracking upwards by one page height
-                pdf.addPage();
-                pdf.addImage(imgData, 'JPEG', 0, position, contentWidth, imgHeightInMm);
-                drawMaskAndBorder();
-                heightLeft -= pdfHeight;
-            }
-
-            pdf.save(`Thirumana_Porutham_${bride.name}_${groom.name}.pdf`);
+            await generatePoruthamPDF(data);
         } catch (error) {
             console.error('Error generating PDF:', error);
             alert('PDF டவுன்லோட் செய்வதில் பிழை ஏற்பட்டது (Failed to download PDF)');
         } finally {
             setIsDownloading(false);
-            if (wasHidden) setShowDetails(false);
         }
     };
 
@@ -145,7 +65,7 @@ const PoruthamResult = ({ data }) => {
     };
 
     return (
-        <div className="results-section" ref={reportRef} style={{ padding: isDownloading ? '2rem 1rem' : 0, background: isDownloading ? '#020617' : 'transparent', borderRadius: '1rem' }}>
+        <div className="results-section" style={{ borderRadius: '1rem' }}>
             <motion.div
                 layout
                 className={`match-status ${canMarry ? 'success' : 'fail'}`}
@@ -230,7 +150,7 @@ const PoruthamResult = ({ data }) => {
                         transition={{ duration: 0.3 }}
                         style={{ overflow: 'hidden', paddingBottom: '1rem' }}
                     >
-                        <div style={{ background: 'var(--bg-darker)', padding: isDownloading ? '1rem' : 0 }}>
+                        <div>
                             {summaryReport && (
                                 <div className="glass-card printable-card" style={{ border: '1px solid var(--primary)', background: 'rgba(168, 85, 247, 0.05)' }}>
                                     <h3 style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
