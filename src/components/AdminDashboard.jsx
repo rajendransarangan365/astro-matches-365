@@ -98,18 +98,46 @@ const AdminDashboard = ({ token }) => {
                 <p>Admin Dashboard</p>
             </div>
 
-            <div className="tabs" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
                 <button
-                    className={`nav-tab dynamic-pill ${activeTab === 'access' ? 'active' : 'inactive'}`}
                     onClick={() => setActiveTab('access')}
-                    style={{ padding: '0.75rem 1.5rem', borderRadius: '2rem' }}
+                    style={{
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '2rem',
+                        background: activeTab === 'access' ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
+                        color: activeTab === 'access' ? '#c084fc' : 'var(--text-muted)',
+                        border: `1px solid ${activeTab === 'access' ? 'rgba(168, 85, 247, 0.4)' : 'var(--glass-border)'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer',
+                        width: 'auto',
+                        minWidth: 'fit-content'
+                    }}
+                    onMouseOver={(e) => { if (activeTab !== 'access') { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; } }}
+                    onMouseOut={(e) => { if (activeTab !== 'access') { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--glass-border)'; e.currentTarget.style.background = 'transparent'; } }}
                 >
                     <Mic size={18} /> ஏஐ குரல் அனுமதி (Voice Access)
                 </button>
                 <button
-                    className={`nav-tab dynamic-pill ${activeTab === 'recovery' ? 'active' : 'inactive'}`}
                     onClick={() => setActiveTab('recovery')}
-                    style={{ padding: '0.75rem 1.5rem', borderRadius: '2rem' }}
+                    style={{
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '2rem',
+                        background: activeTab === 'recovery' ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
+                        color: activeTab === 'recovery' ? '#c084fc' : 'var(--text-muted)',
+                        border: `1px solid ${activeTab === 'recovery' ? 'rgba(168, 85, 247, 0.4)' : 'var(--glass-border)'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer',
+                        width: 'auto',
+                        minWidth: 'fit-content'
+                    }}
+                    onMouseOver={(e) => { if (activeTab !== 'recovery') { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; } }}
+                    onMouseOut={(e) => { if (activeTab !== 'recovery') { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--glass-border)'; e.currentTarget.style.background = 'transparent'; } }}
                 >
                     <KeyRound size={18} /> கடவுச்சொல் மீட்பு (Password Recovery)
                 </button>
@@ -194,7 +222,7 @@ const AdminDashboard = ({ token }) => {
                                     style={{ width: '100%' }}
                                 />
                             </div>
-                            <button type="submit" disabled={loadingRecovery || !searchQuery.trim()} style={{ whiteSpace: 'nowrap' }}>
+                            <button type="submit" disabled={loadingRecovery || !searchQuery.trim()} style={{ whiteSpace: 'nowrap', width: 'auto', padding: '0 2rem' }}>
                                 {loadingRecovery ? <Loader2 className="spin" size={18} /> : <Search size={18} />}
                                 தேடு (Search)
                             </button>
