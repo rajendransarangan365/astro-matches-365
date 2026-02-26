@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { Upload, X, Loader2, HardDrive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageEditor from './ImageEditor';
