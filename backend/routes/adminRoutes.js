@@ -72,4 +72,46 @@ router.get('/users/search', protectAdmin, async (req, res) => {
     }
 });
 
+// PATCH toggle admin status (Admin only)
+router.patch('/users/:id/admin-access', protectAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { isAdmin } = req.body;
+
+        const { usersCollection } = await connectToDb();
+        const result = await usersCollection.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { isAdmin } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'பயனர் கிடைக்கவில்லை (User not found)' });
+        }
+
+        res.json({ message: 'நிர்வாகி அனுமதி புதுப்பிக்கப்பட்டது (Admin access updated)' });
+    } catch (error) {
+        console.error('Error toggling admin access:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+// DELETE remove a user (Admin only)
+router.delete('/users/:id', protectAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const { usersCollection } = await connectToDb();
+        const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: 'பயனர் கிடைக்கவில்லை (User not found)' });
+        }
+
+        res.json({ message: 'பயனர் நீக்கப்பட்டார் (User deleted)' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
 export default router;

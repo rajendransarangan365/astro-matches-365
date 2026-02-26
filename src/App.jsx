@@ -55,75 +55,57 @@ function App() {
         onClose={() => setIsProfileModalOpen(false)}
       />
 
-      {/* Modern Navbar */}
+      {/* Top Header Bar */}
       <nav className="navbar">
-        <div className="nav-container">
-          <div className="nav-profile-group">
-            <button
-              className="nav-brand"
-              onClick={() => setIsProfileModalOpen(true)}
-              style={{
-                background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
-                display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem',
-                borderRadius: '0.5rem', transition: 'background 0.2s', outline: 'none'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
-            >
-              <div style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '0.4rem', borderRadius: '50%', display: 'flex' }}>
-                <User size={16} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1 }}>வணக்கம்,</span>
-                <strong style={{ fontSize: '0.85rem', lineHeight: 1.2, maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</strong>
-              </div>
-            </button>
-            <button className="nav-icon-btn danger" onClick={logout} title="Logout">
-              <LogOut size={18} strokeWidth={2.5} />
-            </button>
+        <div className="nav-header">
+          <button
+            className="nav-user-btn"
+            onClick={() => setIsProfileModalOpen(true)}
+          >
+            <div className="nav-avatar">
+              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
+            <span className="nav-username">{user?.name}</span>
+          </button>
+
+          <div className="nav-header-center">
+            <Heart size={16} className="nav-logo-icon" />
+            <span className="nav-app-name">பொருத்தம்</span>
           </div>
 
-          {/* Page Tabs - Dynamic Pill Style */}
-          <div className="nav-tabs">
-            {[
-              { id: 'matching', icon: HeartHandshake, label: 'பொருத்தம்' },
-              { id: 'jathagam', icon: Calculator, label: 'ஜாதகம்' },
-              { id: 'matches', icon: Search, label: 'தேடல்' },
-              { id: 'dashboard', icon: History, label: 'Dashboard', onClick: fetchMatches },
-              ...(user?.isAdmin ? [{ id: 'admin', icon: ShieldCheck, label: 'Admin' }] : [])
-            ].map((tab) => {
-              const isActive = activePage === tab.id;
-              const Icon = tab.icon;
-
-              return (
-                <button
-                  key={tab.id}
-                  className={`nav-tab dynamic-pill ${isActive ? 'active' : 'inactive'}`}
-                  onClick={() => {
-                    if (tab.onClick && activePage !== tab.id) tab.onClick();
-                    setActivePage(tab.id);
-                  }}
-                >
-                  <Icon size={16} strokeWidth={isActive ? 2.5 : 2} style={{ flexShrink: 0 }} />
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.span
-                        initial={{ width: 0, opacity: 0, paddingLeft: 0 }}
-                        animate={{ width: 'auto', opacity: 1, paddingLeft: '0.35rem' }}
-                        exit={{ width: 0, opacity: 0, paddingLeft: 0 }}
-                        transition={{ duration: 0.3, ease: 'easeOut' }}
-                        style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
-                      >
-                        {tab.label}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </button>
-              );
-            })}
-          </div>
+          <button className="nav-logout-btn" onClick={logout} title="Logout">
+            <LogOut size={16} />
+          </button>
         </div>
       </nav>
+
+      {/* Bottom Tab Bar (Mobile) / Inline Tabs (Desktop) */}
+      <div className="bottom-tab-bar">
+        {[
+          { id: 'matching', icon: HeartHandshake, label: 'பொருத்தம்' },
+          { id: 'jathagam', icon: Calculator, label: 'ஜாதகம்' },
+          { id: 'matches', icon: Search, label: 'தேடல்' },
+          { id: 'dashboard', icon: History, label: 'வரலாறு', onClick: fetchMatches },
+          ...(user?.isAdmin ? [{ id: 'admin', icon: ShieldCheck, label: 'Admin' }] : [])
+        ].map((tab) => {
+          const isActive = activePage === tab.id;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              className={`bottom-tab ${isActive ? 'active' : ''}`}
+              onClick={() => {
+                if (tab.onClick && activePage !== tab.id) tab.onClick();
+                setActivePage(tab.id);
+              }}
+            >
+              <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
+              <span className="bottom-tab-label">{tab.label}</span>
+              {isActive && <div className="bottom-tab-indicator" />}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Page Content */}
       {activePage === 'jathagam' ? (
